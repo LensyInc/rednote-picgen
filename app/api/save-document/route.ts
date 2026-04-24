@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     const newVersion = await saveTaskDocument(parseResult.data, {
-      expectedVersion: typeof body.version === "number" ? body.version : undefined,
+      expectedVersion: access === "allowed" && typeof body.version === "number" ? body.version : undefined,
     });
 
     // 写入/更新 PG 元数据
