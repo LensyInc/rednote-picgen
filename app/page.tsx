@@ -13,7 +13,6 @@ import { UserMenu } from "@/components/auth/user-menu";
 import { useAuth } from "@/lib/auth-context";
 import { fetchWithAuth } from "@/lib/fetch-with-auth";
 import { ensureGuestId } from "@/lib/guest-id";
-import { mockNoteDocument } from "@/core/storage/mock-data";
 import { NoteDocument, Slide } from "@/core/schema/note.schema";
 import { GenerateRequest } from "@/core/schema/request.schema";
 import { Button } from "@/components/ui/button";
@@ -50,6 +49,33 @@ function newSlideId() {
   return `slide-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+function createBlankDocument(): NoteDocument {
+  return {
+    taskId: crypto.randomUUID(),
+    version: 1,
+    createdAt: new Date().toISOString(),
+    meta: { topic: "", audience: "通用", tone: "gentle", noteType: "listicle", pageCount: 1 },
+    theme: {
+      template: "template-a",
+      primaryColor: "#FF2442",
+      secondaryColor: "#FFF5F7",
+      backgroundType: "solid",
+      fontScale: "medium",
+    },
+    slides: [{
+      id: newSlideId(),
+      type: "cover",
+      title: "",
+      subtitle: null,
+      bullets: [],
+      highlight: null,
+      use_real_image: false,
+      image_query: null,
+      image: null,
+    }],
+  };
+}
+
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
 
@@ -58,7 +84,8 @@ export default function HomePage() {
     ensureGuestId();
   }, []);
 
-  const [document, setDocument] = React.useState<NoteDocument>(mockNoteDocument);
+  const [hasStarted, setHasStarted] = React.useState(false);
+  const [document, setDocument] = React.useState<NoteDocument>(() => createBlankDocument());
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [mode, setMode] = React.useState<Mode>("ai");
   const [isGenerating, setIsGenerating] = React.useState(false);
@@ -100,6 +127,7 @@ export default function HomePage() {
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const lastSavedRef = React.useRef<string>(JSON.stringify(document));
   React.useEffect(() => {
+    if (!hasStarted) return;
     const json = JSON.stringify(document);
     if (json === lastSavedRef.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -135,7 +163,7 @@ export default function HomePage() {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [document]);
+  }, [document, hasStarted]);
 
   async function handleGenerate(data: GenerateRequest) {
     setIsGenerating(true);
@@ -152,6 +180,7 @@ export default function HomePage() {
         lastSavedRef.current = JSON.stringify(result);
         setDocument(result);
         setSelectedIndex(0);
+        setHasStarted(true);
       } else if (res.status === 401 || res.status === 403) {
         const err = await res.json();
         setGenerateError(err.error || "请先登录以使用 AI 生成功能");
@@ -181,6 +210,7 @@ export default function HomePage() {
     setDocument(doc);
     setSelectedIndex(0);
     setExportResult(null);
+    setHasStarted(true);
   }
 
   function handleBackgroundChange(type: BackgroundType) {
@@ -232,7 +262,7 @@ export default function HomePage() {
   }
 
   function handleDeleteSlide(index: number) {
-    if (document.slides.length <= 4) return;
+    if (document.slides.length <= 1) return;
     const newSlides = document.slides.filter((_, i) => i !== index);
     setDocument({
       ...document,
@@ -263,6 +293,46 @@ export default function HomePage() {
       meta: { ...document.meta, pageCount: newSlides.length },
     });
     setSelectedIndex(index + 1);
+  }
+
+  if (!hasStarted) {
+    return (
+      <div className="relative flex h-screen w-full flex-col items-center justify-center gap-8 bg-background">
+        <div className="absolute right-4 top-4">
+          <UserMenu />
+        </div>
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-wenkai)" }}>
+            图文卡片生成器
+          </h1>
+          <p className="text-sm text-muted-foreground">制作小红书风格图文卡片，导出高清 PNG</p>
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={() => { setHasStarted(true); setMode("ai"); }}
+            className="flex flex-col items-center gap-3 rounded-2xl border-2 border-transparent bg-card px-10 py-8 shadow-sm transition-all hover:border-primary hover:shadow-md"
+          >
+            <Sparkles className="h-8 w-8 text-primary" />
+            <div className="text-center">
+              <div className="text-base font-semibold">AI 一键生成</div>
+              <div className="text-xs text-muted-foreground mt-0.5">填写主题，AI 自动创作</div>
+            </div>
+          </button>
+          <button
+            onClick={() => { setHasStarted(true); setMode("manual"); }}
+            className="flex flex-col items-center gap-3 rounded-2xl border-2 border-transparent bg-card px-10 py-8 shadow-sm transition-all hover:border-primary hover:shadow-md"
+          >
+            <Wrench className="h-8 w-8 text-primary" />
+            <div className="text-center">
+              <div className="text-base font-semibold">手动搭建</div>
+              <div className="text-xs text-muted-foreground mt-0.5">自由添加页面，灵活排版</div>
+            </div>
+          </button>
+        </div>
+        <HistoryTaskList onLoad={handleLoadDocument} />
+        <AuthDialog />
+      </div>
+    );
   }
 
   return (
