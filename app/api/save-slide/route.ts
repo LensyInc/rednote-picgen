@@ -49,7 +49,13 @@ export async function POST(req: NextRequest) {
     }
 
     const clientVersion = body.version;
-    if (typeof clientVersion === "number" && clientVersion !== document.version) {
+    if (typeof clientVersion !== "number") {
+      return NextResponse.json(
+        { error: "缺少 version 字段，请刷新后重试" },
+        { status: 400 }
+      );
+    }
+    if (clientVersion !== document.version) {
       return NextResponse.json(
         { error: "文档已被修改，请刷新后重试" },
         { status: 409 }
@@ -62,7 +68,9 @@ export async function POST(req: NextRequest) {
     }
 
     document.slides[slideIndex] = parseResult.data;
-    const newVersion = await saveTaskDocument(document);
+    const newVersion = await saveTaskDocument(document, {
+      expectedVersion: document.version,
+    });
 
     return NextResponse.json({ success: true, slide: parseResult.data, version: newVersion });
   } catch (e) {

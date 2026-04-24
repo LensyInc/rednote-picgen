@@ -32,8 +32,8 @@ ${sanitizeUserInput(userOutline.trim())}
 
 选题：${sanitizeUserInput(topic)}
 目标人群：${sanitizeUserInput(audience)}
-风格：${TONE_MAP[tone]}
-内容类型：${NOTE_TYPE_MAP[noteType]}
+风格：${TONE_MAP[tone] ?? tone}
+内容类型：${NOTE_TYPE_MAP[noteType] ?? noteType}
 总页数：${pageCount} 页
 ${includeRealImages ? "需要插入真实图片" : "不需要真实图片"}${userOutlineBlock}
 

@@ -4,7 +4,7 @@ import { CardContainer } from "./card-container";
 import { Tag, Highlight } from "./atoms";
 
 function splitQA(text: string): { q: string; a: string } {
-  const sep = ["？", "?", "|", "—", "——"];
+  const sep = ["？", "?", "|", "——", "—"];
   for (const s of sep) {
     const idx = text.indexOf(s);
     if (idx > 0 && idx < text.length - 1) {

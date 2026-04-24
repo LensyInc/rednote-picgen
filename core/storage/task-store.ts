@@ -12,19 +12,43 @@ const PREFIX_ASSETS = "assets/";
 
 /**
  * 保存 NoteDocument 到 R2（私有 bucket）
+ * 如果提供 expectedVersion，则进行乐观锁校验：
+ * 仅当 R2 中的当前版本等于 expectedVersion 时才写入，
+ * 防止并发写入导致数据丢失。
+ * 返回 { version } 或在版本冲突时抛出 CONFLICT_ERROR。
  */
+export const CONFLICT_ERROR = "VERSION_CONFLICT";
+
 export async function saveTaskDocument(
-  document: NoteDocument
+  document: NoteDocument,
+  options?: { expectedVersion?: number }
 ): Promise<number> {
   const result = noteDocumentSchema.safeParse(document);
   if (!result.success) {
     console.error("[task-store] 文档校验失败:", result.error.format());
     throw new Error("文档数据格式异常，无法保存");
   }
-  const newVersion = (result.data.version || 0) + 1;
+
   const key = `${PREFIX_DOCUMENTS}${document.taskId}.json`;
-  const body = JSON.stringify({ ...result.data, version: newVersion }, null, 2);
   const bucket = getPrivateBucket();
+
+  let currentVersion: number | null = null;
+  if (options?.expectedVersion !== undefined) {
+    try {
+      const existing = await loadTaskDocument(document.taskId);
+      currentVersion = existing?.version ?? null;
+      if (currentVersion !== options.expectedVersion) {
+        throw new Error(CONFLICT_ERROR);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message === CONFLICT_ERROR) throw err;
+      console.error("[task-store] 乐观锁读取失败:", err);
+      throw err;
+    }
+  }
+
+  const newVersion = (result.data.version || 0) + 1;
+  const body = JSON.stringify({ ...result.data, version: newVersion }, null, 2);
 
   await s3Client.send(
     new PutObjectCommand({

@@ -22,6 +22,11 @@ export function ImageCandidatePicker({
   const [candidates, setCandidates] = React.useState<StockSearchResult[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState(query || "");
+  const [prevQuery, setPrevQuery] = React.useState(query);
+  if (query && query !== prevQuery) {
+    setPrevQuery(query);
+    setSearchQuery(query);
+  }
   const abortRef = React.useRef<AbortController | null>(null);
 
   const doSearch = React.useCallback(async (q: string) => {

@@ -39,10 +39,15 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
   }, []);
 
   const overflow = React.useMemo(() => checkSlideOverflow(editing), [editing]);
-  const dirty = React.useMemo(
-    () => JSON.stringify(editing) !== JSON.stringify(slide),
-    [editing, slide]
-  );
+  const dirty = React.useMemo(() => {
+    const norm = (s: Slide) => JSON.stringify({
+      ...s,
+      subtitle: s.subtitle ?? null,
+      highlight: s.highlight ?? null,
+      image: s.image ?? null,
+    });
+    return norm(editing) !== norm(slide);
+  }, [editing, slide]);
 
   function handleSave() {
     onUpdate(editing);

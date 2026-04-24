@@ -26,26 +26,26 @@ export function TimelineCard({ slide, theme, backgroundType, pageIndex, pageTota
           {slide.bullets.map((bullet, i) => {
             const isLast = i === slide.bullets.length - 1;
             return (
-              <li key={i} className="relative flex gap-8 pb-8">
-                <div className="relative flex flex-col items-center">
-                  <span
-                    className="z-10 flex h-20 w-20 items-center justify-center text-[28px] font-black"
-                    style={{
-                      backgroundColor: theme.primary,
-                      color: theme.primaryText,
-                      borderRadius: radius(theme, "pill"),
-                      boxShadow: `0 0 0 8px ${theme.background}`,
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {!isLast && (
-                    <span
-                      className="absolute top-full bottom-0 w-[6px]"
-                      style={{ backgroundColor: theme.divider }}
-                    />
-                  )}
-                </div>
+<li key={i} className="relative flex gap-8 pb-8">
+                 <div className="relative flex flex-shrink-0 flex-col items-center">
+                   <span
+                     className="z-10 flex h-20 w-20 items-center justify-center text-[28px] font-black"
+                     style={{
+                       backgroundColor: theme.primary,
+                       color: theme.primaryText,
+                       borderRadius: radius(theme, "pill"),
+                       boxShadow: `0 0 0 8px ${theme.background}`,
+                     }}
+                   >
+                     {String(i + 1).padStart(2, "0")}
+                   </span>
+                   {!isLast && (
+                     <span
+                       className="w-[6px] flex-1"
+                       style={{ backgroundColor: theme.divider }}
+                     />
+                   )}
+                 </div>
                 <div
                   className="flex-1 px-8 py-5"
                   style={{

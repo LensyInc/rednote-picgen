@@ -92,7 +92,7 @@ export default function HomePage() {
 
   const safeIndex = Math.min(selectedIndex, document.slides.length - 1);
   const currentSlide: Slide = document.slides[safeIndex] ?? document.slides[0];
-  const backgroundType = (document.theme.backgroundType as BackgroundType) || "solid";
+  const backgroundType = document.theme.backgroundType || "solid";
   const currentBg = BACKGROUND_TYPES.find((b) => b.value === backgroundType) || BACKGROUND_TYPES[0];
 
   // 文档变化时自动保存（debounced）
@@ -110,14 +110,19 @@ export default function HomePage() {
         const res = await fetchWithAuth("/api/save-document", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ taskId: document.taskId, document }),
+          body: JSON.stringify({ taskId: document.taskId, document, version: document.version }),
           signal: abortControllerRef.current?.signal,
         });
         if (res.ok) {
-          lastSavedRef.current = json;
           const data = await res.json();
-          if (typeof data.version === "number" && data.version !== document.version) {
-            setDocument((prev) => ({ ...prev, version: data.version }));
+          if (typeof data.version === "number") {
+            setDocument((prev) => {
+              const updated = { ...prev, version: data.version };
+              lastSavedRef.current = JSON.stringify(updated);
+              return updated;
+            });
+          } else {
+            lastSavedRef.current = json;
           }
         } else {
           console.error("[auto-save] status", res.status);
@@ -234,7 +239,11 @@ export default function HomePage() {
       slides: newSlides,
       meta: { ...document.meta, pageCount: newSlides.length },
     });
-    if (selectedIndex >= newSlides.length) setSelectedIndex(newSlides.length - 1);
+    if (selectedIndex > index) {
+      setSelectedIndex(selectedIndex - 1);
+    } else if (selectedIndex >= newSlides.length) {
+      setSelectedIndex(newSlides.length - 1);
+    }
   }
 
   function handleDuplicateSlide(index: number) {

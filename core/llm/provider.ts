@@ -8,6 +8,7 @@ export interface Message {
 export interface ChatOptions {
   temperature?: number;
   maxTokens?: number;
+  /** 失败后的最大重试次数（不含首次尝试） */
   retries?: number;
 }
 
@@ -26,9 +27,11 @@ class OpenAICompatibleProvider implements LLMProvider {
 
   async chat(messages: Message[], options: ChatOptions = {}): Promise<string> {
     const maxRetries = options.retries ?? 1;
+    let attempt = 0;
     let lastError: Error | null = null;
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    while (attempt <= maxRetries) {
+      attempt++;
       const started = Date.now();
       try {
         const completion = await this.client.chat.completions.create({
@@ -43,13 +46,13 @@ class OpenAICompatibleProvider implements LLMProvider {
           throw new Error("LLM returned empty content");
         }
         const elapsed = ((Date.now() - started) / 1000).toFixed(1);
-        console.log(`[llm] ${this.model} attempt=${attempt + 1} ok in ${elapsed}s`);
+        console.log(`[llm] ${this.model} attempt=${attempt} ok in ${elapsed}s`);
         return content;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         const elapsed = ((Date.now() - started) / 1000).toFixed(1);
         console.warn(
-          `[llm] ${this.model} attempt=${attempt + 1} failed in ${elapsed}s: ${lastError.message}`
+          `[llm] ${this.model} attempt=${attempt} failed in ${elapsed}s: ${lastError.message}`
         );
         const errorStatus = (error as { status?: number })?.status;
         if (errorStatus === 401) throw lastError;
@@ -58,8 +61,8 @@ class OpenAICompatibleProvider implements LLMProvider {
         }
         const isTimeout = /timeout|timed? out|ETIMEDOUT|ECONNRESET/i.test(lastError.message);
         const isRetryable = isTimeout || /429|rate limit|too many/i.test(lastError.message) || (errorStatus !== undefined && (errorStatus === 429 || errorStatus >= 500));
-        if (attempt < maxRetries && isRetryable) {
-          const delay = 2000 * (attempt + 1);
+        if (attempt <= maxRetries && isRetryable) {
+          const delay = 1000 * Math.pow(2, attempt - 1);
           await new Promise((r) => setTimeout(r, delay));
         } else {
           break;

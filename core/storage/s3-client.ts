@@ -27,6 +27,9 @@ function initS3() {
 
 export const s3Client = new Proxy({} as S3Client, {
   get(_, prop) {
+    if (prop === "then" || prop === "catch" || prop === "finally") {
+      return undefined;
+    }
     initS3();
     return Reflect.get(_s3Client!, prop);
   },

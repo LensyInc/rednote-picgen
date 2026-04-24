@@ -7,6 +7,8 @@ import { getRequestIdentity, requireLogin } from "@/lib/auth-server";
 import { canAccessTask } from "@/core/db/task-meta";
 import { consumeCredit, refundCredit } from "@/core/db/credits";
 
+import { CONFLICT_ERROR } from "@/core/storage/task-store";
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
@@ -57,38 +59,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "页面不存在" }, { status: 404 });
     }
 
+    const originalVersion = document.version;
     const userId = identity.userId!;
     let consumed = false;
 
     try {
       // 扣点
-      const creditOk = await consumeCredit(userId, taskId);
-      if (!creditOk) {
+      const creditResult = await consumeCredit(userId, taskId);
+      if (!creditResult.ok) {
+        const errorMsg = creditResult.reason === "insufficient"
+          ? "今日 AI 生成次数已用完，请明天再来或升级 Pro 会员"
+          : "积分服务暂时不可用，请稍后重试";
         return NextResponse.json(
-          { error: "今日 AI 生成次数已用完，请明天再来或升级 Pro 会员" },
-          { status: 402 }
+          { error: errorMsg },
+          { status: creditResult.reason === "insufficient" ? 402 : 503 }
         );
       }
       consumed = true;
 
       const rewritten = await rewriteSlide(document.slides[slideIndex], instruction);
 
-      const currentDoc = await loadTaskDocument(taskId);
-      if (currentDoc && currentDoc.version !== document.version) {
-        await refundCredit(userId, taskId);
-        return NextResponse.json(
-          { error: "文档已被修改，请刷新后重试" },
-          { status: 409 }
-        );
-      }
-
-      document.slides[slideIndex] = rewritten;
-      const newVersion = await saveTaskDocument(document);
+      // 乐观锁：使用 expectedVersion 防止并发写入覆盖
+      const docToSave = { ...document, slides: [...document.slides] };
+      docToSave.slides[slideIndex] = rewritten;
+      const newVersion = await saveTaskDocument(docToSave, {
+        expectedVersion: originalVersion,
+      });
 
       return NextResponse.json({ slide: rewritten, version: newVersion });
     } catch (llmError) {
       if (consumed) {
         await refundCredit(userId, taskId);
+      }
+      if (llmError instanceof Error && llmError.message === CONFLICT_ERROR) {
+        return NextResponse.json(
+          { error: "文档已被修改，请刷新后重试" },
+          { status: 409 }
+        );
       }
       const message = llmError instanceof Error ? llmError.message : String(llmError);
       return NextResponse.json(

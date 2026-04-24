@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestIdentity } from "@/lib/auth-server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,12 @@ const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 const TIMEOUT_MS = 10000; // 10 s
 
 export async function GET(req: NextRequest) {
+  // 要求至少有身份（登录或游客），防止匿名滥用
+  const identity = await getRequestIdentity(req);
+  if (!identity.userId && !identity.guestId) {
+    return NextResponse.json({ error: "需要身份验证" }, { status: 401 });
+  }
+
   const urlParam = req.nextUrl.searchParams.get("url");
   if (!urlParam) {
     return NextResponse.json({ error: "缺少 url 参数" }, { status: 400 });
@@ -38,24 +45,12 @@ export async function GET(req: NextRequest) {
   try {
     const res = await fetch(parsedUrl.toString(), {
       signal: controller.signal,
-      redirect: "manual",
+      redirect: "follow",
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
       },
     });
     clearTimeout(timer);
-
-    if (res.status >= 300 && res.status < 400) {
-      const loc = res.headers.get("Location");
-      if (!loc) {
-        return NextResponse.json({ error: "重定向目标缺失" }, { status: 502 });
-      }
-      const redirectUrl = new URL(loc, parsedUrl);
-      if (!ALLOWED_HOSTS.includes(redirectUrl.hostname) || redirectUrl.protocol !== "https:") {
-        return NextResponse.json({ error: "重定向目标不在允许列表" }, { status: 403 });
-      }
-      return NextResponse.redirect(redirectUrl);
-    }
 
     if (!res.ok) {
       return NextResponse.json({ error: "图片获取失败" }, { status: 502 });

@@ -35,10 +35,15 @@ export async function rewriteSlide(
   );
 
   const parsed = parseLLMJson(response);
-  const validated = slideSchema.parse(parsed);
+  const validated = slideSchema.safeParse(parsed);
+  if (!validated.success) {
+    console.error("[rewrite-slide] LLM output validation failed:", validated.error.format());
+    throw new Error("LLM 输出格式异常");
+  }
 
   return {
-    ...validated,
-    image: slide.image, // 保留原有图片信息
+    ...validated.data,
+    id: slide.id,
+    image: slide.image,
   };
 }

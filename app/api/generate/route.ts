@@ -52,11 +52,14 @@ export async function POST(req: NextRequest) {
       );
 
       // 扣点
-      const creditOk = await consumeCredit(userId, taskId);
-      if (!creditOk) {
+      const creditResult = await consumeCredit(userId, taskId);
+      if (!creditResult.ok) {
+        const errorMsg = creditResult.reason === "insufficient"
+          ? "今日 AI 生成次数已用完，请明天再来或升级 Pro 会员"
+          : "积分服务暂时不可用，请稍后重试";
         return NextResponse.json(
-          { error: "今日 AI 生成次数已用完，请明天再来或升级 Pro 会员" },
-          { status: 402 }
+          { error: errorMsg },
+          { status: creditResult.reason === "insufficient" ? 402 : 503 }
         );
       }
       consumed = true;

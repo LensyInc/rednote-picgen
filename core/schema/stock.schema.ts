@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { sourceEnum } from "./request.schema";
 
 export const stockSearchResultSchema = z.object({
-  source: z.enum(["pexels", "pixabay"]),
-  id: z.string(),
+  source: sourceEnum,
+  id: z.string().min(1),
   previewUrl: z.string().url(),
   fullUrl: z.string().url(),
   pageUrl: z.string().url().optional(),

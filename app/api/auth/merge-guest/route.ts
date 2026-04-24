@@ -4,7 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { z } from "zod";
 
 const mergeSchema = z.object({
-  guestId: z.string().min(1),
+  guestId: z.string().uuid(),
 });
 
 export const dynamic = "force-dynamic";
@@ -27,10 +27,14 @@ export async function POST(req: NextRequest) {
 
     // 使用 Service Role 绕过 RLS，确保能更新 guest_id 记录
     const serviceSupabase = createServiceRoleClient();
+
+    // 只能合并没有任何 user_id 关联的游客任务，
+    // 防止已绑定用户的任务被窃取
     const { error } = await serviceSupabase
       .from("tasks")
       .update({ user_id: user.id, guest_id: null })
-      .eq("guest_id", parsed.data.guestId);
+      .eq("guest_id", parsed.data.guestId)
+      .is("user_id", null);
 
     if (error) {
       console.error("[merge-guest] update error:", error);

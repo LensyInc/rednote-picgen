@@ -30,10 +30,13 @@ export async function GET(_req: NextRequest) {
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) {
       // 如果用户刚创建，credit 记录可能不存在，返回默认值
+      // daily_reset_at 设为次日 UTC 0 点
+      const now = new Date();
+      const resetAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
       return NextResponse.json({
         balance: 3,
         daily_quota: 3,
-        daily_reset_at: new Date().toISOString(),
+        daily_reset_at: resetAt.toISOString(),
         plan_type: "free",
       });
     }

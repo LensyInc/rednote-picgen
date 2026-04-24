@@ -61,12 +61,12 @@ function validateOutline(outline: OutlineResult, expectedCount: number): void {
   }
 
   // 验证第一页是 cover
-  if (outline.slides[0]?.type !== "cover") {
+  if (outline.slides.length > 1 && outline.slides[0]?.type !== "cover") {
     throw new Error("大纲第一页必须是 cover 类型");
   }
 
-  // 验证最后一页是 cta
-  if (outline.slides[outline.slides.length - 1]?.type !== "cta") {
+  // 验证最后一页是 cta（仅 2 页以上时要求）
+  if (outline.slides.length > 1 && outline.slides[outline.slides.length - 1]?.type !== "cta") {
     throw new Error("大纲最后一页必须是 cta 类型");
   }
 }

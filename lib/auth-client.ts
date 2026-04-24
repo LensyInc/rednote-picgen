@@ -1,14 +1,16 @@
 import { createClient } from "@/lib/supabase/client";
 import { ensureGuestId, clearGuestId, getGuestId } from "@/lib/guest-id";
 
-// 返回 supabase 客户端实例（浏览器端）
-export function getSupabaseClient() {
-  return createClient();
+// 复用单例 Supabase 客户端，避免多次创建实例
+let _browserClient: ReturnType<typeof createClient> | null = null;
+function getBrowserClient() {
+  if (!_browserClient) _browserClient = createClient();
+  return _browserClient;
 }
 
 // 发送 OTP 验证码
 export async function sendOtp(email: string) {
-  const supabase = createClient();
+  const supabase = getBrowserClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -20,7 +22,7 @@ export async function sendOtp(email: string) {
 
 // 验证 OTP 并登录
 export async function verifyOtp(email: string, token: string) {
-  const supabase = createClient();
+  const supabase = getBrowserClient();
   const { data, error } = await supabase.auth.verifyOtp({
     email,
     token,
@@ -31,13 +33,13 @@ export async function verifyOtp(email: string, token: string) {
 
 // 退出登录
 export async function signOut() {
-  const supabase = createClient();
+  const supabase = getBrowserClient();
   await supabase.auth.signOut();
 }
 
 // 获取当前用户
 export async function getCurrentUser() {
-  const supabase = createClient();
+  const supabase = getBrowserClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
   return {

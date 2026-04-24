@@ -49,11 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // 将初始化逻辑推迟到微任务，避免 effect 中同步 setState
-    queueMicrotask(async () => {
-      await fetchUser();
-      setIsLoading(false);
-    });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- must set loading state on init
+    fetchUser()
+      .then(() => setIsLoading(false))
+      .catch((e) => {
+        console.error("[auth] fetchUser failed:", e);
+        setIsLoading(false);
+      });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
@@ -65,9 +67,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // 登录成功后合并游客数据
           const currentGuestId = getGuestId();
           if (currentGuestId) {
-            await mergeGuestTasks(currentGuestId);
-            clearGuestId();
-            setGuestId(null);
+            const ok = await mergeGuestTasks(currentGuestId);
+            if (ok) {
+              clearGuestId();
+              setGuestId(null);
+            }
           }
         } else if (event === "SIGNED_OUT") {
           setUser(null);
@@ -81,7 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchUser, supabase]);
 
   const logout = useCallback(async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch {
+      // 即使 signOut 失败，也要清除本地状态
+    }
     setUser(null);
     // 登出后生成新的 guestId，保持游客可用
     const newGuestId = ensureGuestId();

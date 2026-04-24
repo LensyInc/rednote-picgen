@@ -8,7 +8,7 @@ export const noteTypeEnum = z.enum([
   "comparison",
   "summary",
 ]);
-export const pageCountSchema = z.number().int().min(4).max(12);
+export const pageCountSchema = z.number().int().min(1).max(12);
 export const templateEnum = z.enum([
   "template-a",
   "template-b",

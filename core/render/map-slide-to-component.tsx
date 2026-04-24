@@ -16,6 +16,7 @@ import {
   getThemeSafe,
 } from "@/components/templates/shared";
 import type { BackgroundType } from "@/components/templates/shared/theme";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 interface MapOptions {
   pageIndex?: number;
@@ -38,7 +39,8 @@ export function mapSlideToComponent(
     pageTotal: options.pageTotal,
   };
 
-  switch (slide.type) {
+  const card = (() => {
+    switch (slide.type) {
     case "cover":
       return <CoverCard {...props} />;
     case "content":
@@ -71,4 +73,7 @@ export function mapSlideToComponent(
       return <TextCard {...props} />;
     }
   }
+})();
+
+  return <ErrorBoundary>{card}</ErrorBoundary>;
 }

@@ -1,21 +1,26 @@
 import { z } from "zod";
-import { slideTypeEnum, templateEnum, pageCountSchema, sourceEnum, backgroundTypeEnum } from "./request.schema";
+import { slideTypeEnum, templateEnum, pageCountSchema, sourceEnum, backgroundTypeEnum, toneEnum, noteTypeEnum } from "./request.schema";
 
 export const imageSchema = z
   .object({
     source: sourceEnum,
-    previewUrl: z.string().url(),
-    fullUrl: z.string().url(),
-    pageUrl: z.string().url().optional(),
+    previewUrl: z.string().url().or(z.literal("")),
+    fullUrl: z.string().url().or(z.literal("")),
+    pageUrl: z.string().url().or(z.literal("")).optional(),
     author: z.string().optional(),
     localPath: z.string().optional(),
   })
-  .nullable();
+  .nullable()
+  .transform((val) => {
+    if (!val) return null;
+    if (!val.previewUrl && !val.fullUrl) return null;
+    return val;
+  });
 
 export const slideSchema = z.object({
   id: z.string(),
   type: slideTypeEnum,
-  title: z.string().min(1, "标题不能为空"),
+  title: z.string().min(0),
   subtitle: z.string().nullish(),
   bullets: z.array(z.string()).max(8, "每页最多 8 条内容"),
   highlight: z.string().nullish(),
@@ -33,21 +38,21 @@ export const noteDocumentSchema = z.object({
   createdAt: z.string().datetime(),
   meta: z.object({
     topic: z.string(),
-    audience: z.string(),
-    tone: z.string(),
-    noteType: z.string(),
+    audience: z.string().min(1, "受众不能为空"),
+    tone: toneEnum,
+    noteType: noteTypeEnum,
     pageCount: pageCountSchema,
   }),
   theme: z.object({
     template: templateEnum,
     primaryColor: z.string(),
     secondaryColor: z.string(),
-    backgroundType: backgroundTypeEnum.optional(),
+    backgroundType: backgroundTypeEnum.default("solid"),
     fontScale: z.enum(["small", "medium", "large"]),
   }),
   slides: z
     .array(slideSchema)
-    .min(4, "至少 4 页")
+    .min(1, "至少 1 页")
     .max(12, "最多 12 页"),
 });
 

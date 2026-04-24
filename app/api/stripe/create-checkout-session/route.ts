@@ -43,15 +43,28 @@ export async function POST(_req: NextRequest) {
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: user.email!,
+        email: user.email ?? undefined,
         metadata: { user_id: user.id },
       });
       customerId = customer.id;
-      await serviceSupabase.from("subscriptions").upsert({
-        user_id: user.id,
-        stripe_customer_id: customerId,
-        plan_type: "free",
-      }, { onConflict: "user_id" });
+      // 仅当用户尚无订阅记录时才创建，避免覆盖已有 Pro 记录
+      const { data: existingSub } = await serviceSupabase
+        .from("subscriptions")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!existingSub) {
+        await serviceSupabase.from("subscriptions").upsert({
+          user_id: user.id,
+          stripe_customer_id: customerId,
+          plan_type: "free",
+        }, { onConflict: "user_id" });
+      } else {
+        // 已有记录但缺少 stripe_customer_id，更新之但不改 plan_type
+        await serviceSupabase.from("subscriptions")
+          .update({ stripe_customer_id: customerId })
+          .eq("user_id", user.id);
+      }
     }
 
     const session = await stripe.checkout.sessions.create({

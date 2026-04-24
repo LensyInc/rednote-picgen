@@ -3,7 +3,7 @@
  * 注意：此函数**不能**防御 Prompt 注入（如引号逃逸、指令覆盖）
  * 如需真正隔离用户输入，请使用结构化输出（function calling）
  */
-export function sanitizeUserInput(input: string, maxLength = 500): string {
+export function sanitizeUserInput(input: string, maxLength = 4000): string {
   if (!input) return "";
   // 移除控制字符和零宽字符
   let cleaned = input

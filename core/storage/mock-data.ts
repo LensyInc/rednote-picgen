@@ -83,4 +83,6 @@ export const mockNoteDocument: NoteDocument = {
   ],
 };
 
-noteDocumentSchema.parse(mockNoteDocument);
+if (process.env.NODE_ENV === "development") {
+  noteDocumentSchema.parse(mockNoteDocument);
+}

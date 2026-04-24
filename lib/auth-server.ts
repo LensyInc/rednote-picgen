@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export interface RequestIdentity {
   userId: string | null;
   guestId: string | null;
@@ -9,7 +11,9 @@ export interface RequestIdentity {
 
 /**
  * 从请求中解析身份：优先读取 Supabase Session（登录用户），
- * 其次读取 x-guest-id header（游客）。
+ * 其次读取 x-guest-id header（游客），仅接受 UUID 格式的 guest ID。
+ * 如果 getUser 返回错误（例如过期 JWT），不静默降级为游客，
+ * 而是记录日志后按未登录处理。
  */
 export async function getRequestIdentity(
   req: NextRequest
@@ -17,14 +21,28 @@ export async function getRequestIdentity(
   const supabase = await createClient();
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  if (error) {
+    console.warn("[auth] getUser error:", error.message);
+  }
 
   if (user) {
     return { userId: user.id, guestId: null, isLoggedIn: true };
   }
 
-  const guestId = req.headers.get("x-guest-id");
-  return { userId: null, guestId: guestId || null, isLoggedIn: false };
+  const rawGuestId = req.headers.get("x-guest-id");
+  const guestId = rawGuestId && UUID_RE.test(rawGuestId) ? rawGuestId : null;
+  return { userId: null, guestId, isLoggedIn: false };
+}
+
+/**
+ * 从请求头部获取游客 ID（仅 UUID 格式有效）
+ * 导出供中间件或其他场景复用
+ */
+export function parseGuestId(header: string | null): string | null {
+  return header && UUID_RE.test(header) ? header : null;
 }
 
 /**

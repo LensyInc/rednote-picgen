@@ -31,23 +31,30 @@ export function ExportButton({
   const [exporting, setExporting] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const mountedRef = React.useRef(true);
+  const abortRef = React.useRef<AbortController | null>(null);
 
   React.useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
   }, []);
 
   const handleExport = React.useCallback(async () => {
     setExporting(true);
     setProgress(0);
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
 
     await document.fonts.ready;
 
     const urls: string[] = [];
     const failed: number[] = [];
+    const signal = abortRef.current.signal;
 
     for (let i = 0; i < slideCount; i++) {
-      if (!mountedRef.current) break;
+      if (!mountedRef.current || signal.aborted) break;
 
       onRenderTarget(i);
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -65,6 +72,8 @@ export function ExportButton({
           cacheBust: true,
         });
 
+        if (signal.aborted) break;
+
         const res = await fetchWithAuth("/api/export", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -73,6 +82,7 @@ export function ExportButton({
             slideIndex: i + 1,
             base64Image: dataUrl,
           }),
+          signal,
         });
 
         if (res.ok) {
@@ -82,6 +92,7 @@ export function ExportButton({
           failed.push(i);
         }
       } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") break;
         console.error(`导出第 ${i + 1} 页失败:`, e);
         failed.push(i);
       }
@@ -89,6 +100,7 @@ export function ExportButton({
       if (mountedRef.current) setProgress(i + 1);
     }
 
+    abortRef.current = null;
     onClearTarget();
 
     if (mountedRef.current) {

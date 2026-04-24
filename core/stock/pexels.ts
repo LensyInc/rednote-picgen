@@ -41,15 +41,15 @@ export async function searchPexels(query: string, perPage: number = 5): Promise<
       .map((photo) => ({
         source: "pexels" as const,
         id: String(photo.id),
-        previewUrl: photo.src?.medium || photo.src?.small || photo.src?.original || "",
-        fullUrl: photo.src?.large || photo.src?.original || photo.src?.medium || "",
+        previewUrl: photo.src?.medium || photo.src?.small || "",
+        fullUrl: photo.src?.large || photo.src?.medium || photo.src?.small || "",
         pageUrl: photo.url,
         author: photo.photographer,
         width: photo.width,
         height: photo.height,
       }))
       .filter((img) => Boolean(img.previewUrl && img.fullUrl))
-      .filter((img) => stockSearchResultSchema.safeParse(img).success);
+      .filter((img) => stockSearchResultSchema.safeParse(img).success || (() => { console.warn("[pexels] filtered invalid result:", img.id); return false; })());
   } catch (e) {
     console.error("[pexels] search error:", e);
     return [];

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadTaskDocument } from "@/core/storage/task-store";
 import { listTaskMeta } from "@/core/db/task-meta";
 import { getRequestIdentity } from "@/lib/auth-server";
 import { z } from "zod";
@@ -22,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const { limit, cursor } = params.data;
 
-    // 从 PostgreSQL 查询任务元数据
+    // 直接使用 PG 元数据，不再逐个读取 R2 文档
     const { items, nextCursor } = await listTaskMeta({
       userId: identity.userId,
       guestId: identity.guestId,
@@ -30,34 +29,15 @@ export async function GET(req: NextRequest) {
       cursor,
     });
 
-    // 并发读取 R2 中的文档以获取最新 topic / pageCount
-    const concurrency = 5;
-    const tasks: Array<{ id: string; topic: string; date: string; pageCount: number } | null> = [];
-    for (let i = 0; i < items.length; i += concurrency) {
-      const batch = items.slice(i, i + concurrency);
-      const batchResults = await Promise.all(
-        batch.map(async (meta) => {
-          const doc = await loadTaskDocument(meta.task_id);
-          return doc
-            ? {
-                id: doc.taskId,
-                topic: doc.meta.topic,
-                date: new Date(doc.createdAt).toLocaleString("zh-CN"),
-                pageCount: doc.slides.length,
-              }
-            : {
-                id: meta.task_id,
-                topic: meta.topic,
-                date: new Date(meta.created_at).toLocaleString("zh-CN"),
-                pageCount: meta.page_count,
-              };
-        })
-      );
-      tasks.push(...batchResults);
-    }
+    const tasks = items.map((meta) => ({
+      id: meta.task_id,
+      topic: meta.topic,
+      date: new Date(meta.created_at).toISOString(),
+      pageCount: meta.page_count,
+    }));
 
     return NextResponse.json({
-      tasks: tasks.filter(Boolean),
+      tasks,
       nextCursor,
     });
   } catch (e) {

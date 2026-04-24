@@ -10,7 +10,7 @@ export const maxDuration = 60;
 
 const exportRequestSchema = z.object({
   taskId: z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/),
-  slideIndex: z.number().int().min(0).max(100),
+  slideIndex: z.number().int().min(1).max(12),
   base64Image: z.string().regex(/^data:image\/(png|jpeg|webp);base64,/),
 });
 
@@ -40,9 +40,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "图片大小超过 5MB 限制" }, { status: 413 });
     }
 
-    const mimeMatch = base64Image.match(/^data:(image\/\w+);base64,/);
+    const mimeMatch = base64Image.match(/^data:(image\/(?:png|jpeg|webp));base64,/);
     const mimeType = mimeMatch?.[1] || "image/png";
-    const ext = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1] || "png";
+    const ext = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1];
     const key = `exports/${taskId}/slide-${slideIndex}.${ext}`;
     const bucket = getExportBucket();
     await s3Client.send(

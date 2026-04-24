@@ -50,7 +50,7 @@ export async function searchPixabay(query: string, perPage: number = 5): Promise
         height: hit.imageHeight,
       }))
       .filter((img) => Boolean(img.previewUrl && img.fullUrl))
-      .filter((img) => stockSearchResultSchema.safeParse(img).success);
+      .filter((img) => stockSearchResultSchema.safeParse(img).success || (() => { console.warn("[pixabay] filtered invalid result:", img.id); return false; })());
   } catch (e) {
     console.error("[pixabay] search error:", e);
     return [];

@@ -5,9 +5,12 @@ import { searchStock } from "@/core/stock/search";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
+// 注意：此内存限速器仅在单实例部署下有效。
+// 在 serverless / 多实例环境下，需改用 Redis 或数据库限速。
 const ipCache = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 30;
 const WINDOW_MS = 60_000;
+let lastCleanup = Date.now();
 
 function cleanupExpiredEntries() {
   const now = Date.now();
@@ -20,7 +23,11 @@ export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
     const now = Date.now();
-    if (ipCache.size > 10000) cleanupExpiredEntries();
+    // 定期清理过期条目（而非仅在超过 10000 时），减少内存占用
+    if (now - lastCleanup > WINDOW_MS) {
+      cleanupExpiredEntries();
+      lastCleanup = now;
+    }
     const record = ipCache.get(ip);
     if (record && now < record.resetAt && record.count >= RATE_LIMIT) {
       return NextResponse.json({ error: "请求过于频繁" }, { status: 429 });

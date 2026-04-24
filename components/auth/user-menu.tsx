@@ -23,7 +23,7 @@ export function UserMenu() {
 
   React.useEffect(() => {
     if (!isLoggedIn) {
-      queueMicrotask(() => setCredits(null));
+      setCredits(null); // eslint-disable-line react-hooks/set-state-in-effect -- must clear on logout
       return;
     }
     let cancelled = false;

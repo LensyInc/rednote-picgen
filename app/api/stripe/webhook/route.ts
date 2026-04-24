@@ -43,27 +43,37 @@ export async function POST(req: NextRequest) {
         };
         const userId = session.metadata?.user_id;
         if (userId) {
-          await supabase.from("subscriptions").upsert({
-            user_id: userId,
-            stripe_customer_id: session.customer,
-            stripe_subscription_id: session.subscription,
-            status: "active",
-            plan_type: "pro",
-          }, { onConflict: "user_id" });
+          // 幂等：先检查是否已处理过此事件
+          const eventId = event.id;
+          const { data: existingLog } = await supabase
+            .from("credit_logs")
+            .select("id")
+            .eq("description", `subscription_bonus:${eventId}`)
+            .maybeSingle();
 
-          // 升级用户点数为 Pro 配额（100/天）
-          await supabase.rpc("grant_daily_credits", { p_user_id: userId });
-          await supabase.from("user_credits").update({
-            daily_quota: 100,
-            plan_type: "pro",
-          }).eq("user_id", userId);
+          if (!existingLog) {
+            await supabase.from("subscriptions").upsert({
+              user_id: userId,
+              stripe_customer_id: session.customer,
+              stripe_subscription_id: session.subscription,
+              status: "active",
+              plan_type: "pro",
+            }, { onConflict: "user_id" });
 
-          await supabase.from("credit_logs").insert({
-            user_id: userId,
-            amount: 0,
-            type: "subscription_bonus",
-            description: "升级 Pro 会员",
-          });
+            // 升级用户点数为 Pro 配额（100/天）
+            await supabase.rpc("grant_daily_credits", { p_user_id: userId });
+            await supabase.from("user_credits").update({
+              daily_quota: 100,
+              plan_type: "pro",
+            }).eq("user_id", userId);
+
+            await supabase.from("credit_logs").insert({
+              user_id: userId,
+              amount: 100,
+              type: "subscription_bonus",
+              description: `subscription_bonus:${eventId}`,
+            });
+          }
         }
         break;
       }
@@ -72,17 +82,18 @@ export async function POST(req: NextRequest) {
         break;
       case "customer.subscription.deleted": {
         const subscription = event.data.object as { customer: string };
-        await supabase
-          .from("subscriptions")
-          .update({ status: "cancelled", plan_type: "free" })
-          .eq("stripe_customer_id", subscription.customer);
-
-        // 降回免费配额
+        // 先查 user_id，再更新 subscription（顺序与之前不同，确保更新前能拿到 user_id）
         const { data: subRow } = await supabase
           .from("subscriptions")
           .select("user_id")
           .eq("stripe_customer_id", subscription.customer)
           .maybeSingle();
+
+        await supabase
+          .from("subscriptions")
+          .update({ status: "cancelled", plan_type: "free" })
+          .eq("stripe_customer_id", subscription.customer);
+
         if (subRow?.user_id) {
           await supabase.from("user_credits").update({
             daily_quota: 3,
