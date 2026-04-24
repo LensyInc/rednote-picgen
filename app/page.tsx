@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { TopicForm } from "@/components/editor/topic-form";
 import { SlideEditor } from "@/components/editor/slide-editor";
 import { HistoryTaskList } from "@/components/editor/history-task-list";
 import { ManualBuilder } from "@/components/editor/manual-builder";
+import { AIGenerateDialog } from "@/components/editor/ai-generate-dialog";
+import { ManualStartDialog } from "@/components/editor/manual-start-dialog";
 import { PreviewCanvas } from "@/components/preview/preview-canvas";
 import { ThumbnailStrip } from "@/components/preview/thumbnail-strip";
 import { ExportButton } from "@/components/editor/export-button";
@@ -24,6 +25,7 @@ import {
   Wrench,
   Palette,
   Plus,
+  X,
   ChevronDown,
   Paintbrush,
 } from "lucide-react";
@@ -35,8 +37,6 @@ import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import type { z } from "zod";
 
 type TemplateId = z.infer<typeof templateEnum>;
-
-type Mode = "ai" | "manual";
 
 const BACKGROUND_TYPES: { value: BackgroundType; label: string; description: string }[] = [
   { value: "solid", label: "纯色", description: "干净的纯色背景" },
@@ -87,9 +87,11 @@ export default function HomePage() {
   const [hasStarted, setHasStarted] = React.useState(false);
   const [document, setDocument] = React.useState<NoteDocument>(() => createBlankDocument());
   const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [mode, setMode] = React.useState<Mode>("ai");
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [generateError, setGenerateError] = React.useState<string | null>(null);
+  const [showAIDialog, setShowAIDialog] = React.useState(false);
+  const [showManualDialog, setShowManualDialog] = React.useState(false);
+  const [showFabMenu, setShowFabMenu] = React.useState(false);
   const [rightPanel, setRightPanel] = React.useState<"thumbnails" | "editor">("thumbnails");
   const [exportResult, setExportResult] = React.useState<{
     success: boolean;
@@ -181,6 +183,7 @@ export default function HomePage() {
         setDocument(result);
         setSelectedIndex(0);
         setHasStarted(true);
+        setShowAIDialog(false);
       } else if (res.status === 401 || res.status === 403) {
         const err = await res.json();
         setGenerateError(err.error || "请先登录以使用 AI 生成功能");
@@ -197,6 +200,26 @@ export default function HomePage() {
     } finally {
       setIsGenerating(false);
     }
+  }
+
+  function handleManualStart(topic: string, templateId: TemplateId) {
+    const blank = createBlankDocument();
+    const theme = THEMES[templateId];
+    const doc: NoteDocument = {
+      ...blank,
+      meta: { ...blank.meta, topic: topic || "新建图文" },
+      theme: {
+        ...blank.theme,
+        template: templateId,
+        primaryColor: theme.primary,
+        secondaryColor: theme.surfaceSoft,
+      },
+    };
+    lastSavedRef.current = JSON.stringify(doc);
+    setDocument(doc);
+    setSelectedIndex(0);
+    setShowManualDialog(false);
+    setHasStarted(true);
   }
 
   function handleSlideUpdate(updated: Slide) {
@@ -298,7 +321,8 @@ export default function HomePage() {
   if (!hasStarted) {
     return (
       <div className="relative flex h-screen w-full flex-col items-center justify-center gap-8 bg-background">
-        <div className="absolute right-4 top-4">
+        <div className="absolute right-4 top-4 flex items-center gap-2">
+          <HistoryTaskList onLoad={handleLoadDocument} />
           <UserMenu />
         </div>
         <div className="text-center space-y-2">
@@ -309,7 +333,7 @@ export default function HomePage() {
         </div>
         <div className="flex gap-4">
           <button
-            onClick={() => { setHasStarted(true); setMode("ai"); }}
+            onClick={() => { setGenerateError(null); setShowAIDialog(true); }}
             className="flex flex-col items-center gap-3 rounded-2xl border-2 border-transparent bg-card px-10 py-8 shadow-sm transition-all hover:border-primary hover:shadow-md"
           >
             <Sparkles className="h-8 w-8 text-primary" />
@@ -319,7 +343,7 @@ export default function HomePage() {
             </div>
           </button>
           <button
-            onClick={() => { setHasStarted(true); setMode("manual"); }}
+            onClick={() => setShowManualDialog(true)}
             className="flex flex-col items-center gap-3 rounded-2xl border-2 border-transparent bg-card px-10 py-8 shadow-sm transition-all hover:border-primary hover:shadow-md"
           >
             <Wrench className="h-8 w-8 text-primary" />
@@ -329,7 +353,19 @@ export default function HomePage() {
             </div>
           </button>
         </div>
-        <HistoryTaskList onLoad={handleLoadDocument} />
+        <AIGenerateDialog
+          open={showAIDialog}
+          onOpenChange={setShowAIDialog}
+          onSubmit={handleGenerate}
+          isLoading={isGenerating}
+          error={generateError}
+          isLoggedIn={isLoggedIn}
+        />
+        <ManualStartDialog
+          open={showManualDialog}
+          onOpenChange={setShowManualDialog}
+          onStart={handleManualStart}
+        />
         <AuthDialog />
       </div>
     );
@@ -337,18 +373,19 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
-      {/* 顶部工具栏：极简 */}
       <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-2.5">
         <div className="flex items-center gap-3 min-w-0">
           <h1 className="text-base font-bold shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
             图文卡片生成器
           </h1>
-          <span className="text-xs text-muted-foreground truncate">
-            {document.meta.topic} · 共 {document.slides.length} 页
-          </span>
+          {document.meta.topic && (
+            <span className="text-xs text-muted-foreground truncate">
+              {document.meta.topic} · 共 {document.slides.length} 页
+            </span>
+          )}
         </div>
-
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <HistoryTaskList onLoad={handleLoadDocument} />
           <ExportButton
             taskId={document.taskId}
             slideCount={document.slides.length}
@@ -362,49 +399,10 @@ export default function HomePage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* 左侧：模式切换 + 面板 + 历史 */}
-        <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r bg-card">
-          {/* 大按钮式模式切换 */}
-          <div className="shrink-0 grid grid-cols-2 gap-2 border-b bg-muted/30 p-3">
-            <button
-              onClick={() => setMode("ai")}
-              className={`flex flex-col items-center gap-1 rounded-lg border-2 py-3 text-sm font-medium transition-all ${
-                mode === "ai"
-                  ? "border-primary bg-primary/5 text-primary shadow-sm"
-                  : "border-transparent bg-card text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground"
-              }`}
-            >
-              <Sparkles className="h-5 w-5" />
-              <span>AI 生成</span>
-            </button>
-            <button
-              onClick={() => setMode("manual")}
-              className={`flex flex-col items-center gap-1 rounded-lg border-2 py-3 text-sm font-medium transition-all ${
-                mode === "manual"
-                  ? "border-primary bg-primary/5 text-primary shadow-sm"
-                  : "border-transparent bg-card text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground"
-              }`}
-            >
-              <Wrench className="h-5 w-5" />
-              <span>手动搭建</span>
-            </button>
-          </div>
-
-          {/* 模式面板 */}
+        {/* 左侧：文档设置 */}
+        <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r bg-card">
           <div className="flex-1 overflow-y-auto p-4">
-            {mode === "ai" ? (
-              <>
-                {generateError && (
-                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                    {generateError}
-                  </div>
-                )}
-                <TopicForm onSubmit={handleGenerate} isLoading={isGenerating} isLoggedIn={isLoggedIn} />
-              </>
-            ) : (
-              <ManualBuilder document={document} onDocumentChange={setDocument} />
-            )}
-
+            <ManualBuilder document={document} onDocumentChange={setDocument} />
             {exportResult && (
               <div
                 className={`mt-4 rounded-md p-3 text-xs ${
@@ -439,14 +437,9 @@ export default function HomePage() {
               </div>
             )}
           </div>
-
-          {/* 历史任务 pinned 到底部 */}
-          <div className="shrink-0 border-t bg-muted/20 p-3">
-            <HistoryTaskList onLoad={handleLoadDocument} />
-          </div>
         </aside>
 
-        {/* 中间：浮动工具条 + 预览 */}
+        {/* 中间：工具条 + 预览 */}
         <main className="flex flex-1 flex-col overflow-hidden bg-muted/30">
           <div className="flex shrink-0 items-center gap-2 border-b bg-card/60 px-4 py-2 backdrop-blur">
             <Popover
@@ -467,9 +460,7 @@ export default function HomePage() {
                   <span className="text-base leading-none shrink-0">{t.icon}</span>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium">{t.label}</div>
-                    <div className="text-[11px] text-muted-foreground truncate">
-                      {t.description}
-                    </div>
+                    <div className="text-[11px] text-muted-foreground truncate">{t.description}</div>
                   </div>
                 </PopoverItem>
               ))}
@@ -496,22 +487,13 @@ export default function HomePage() {
                 >
                   <span
                     className="h-4 w-4 shrink-0 rounded-full border"
-                    style={{
-                      backgroundColor: t.primary,
-                      borderColor: t.divider,
-                    }}
+                    style={{ backgroundColor: t.primary, borderColor: t.divider }}
                   />
                   <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
                     <span className="text-sm">{t.name}</span>
                     <span className="flex gap-0.5">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: t.accent }}
-                      />
-                      <span
-                        className="h-2.5 w-2.5 rounded-full border"
-                        style={{ backgroundColor: t.background, borderColor: t.divider }}
-                      />
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.accent }} />
+                      <span className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: t.background, borderColor: t.divider }} />
                     </span>
                   </div>
                 </PopoverItem>
@@ -605,13 +587,59 @@ export default function HomePage() {
                   taskId={document.taskId}
                   onUpdate={handleSlideUpdate}
                   onVersionUpdate={(v) => setDocument((prev) => ({ ...prev, version: v }))}
-                  allowRewrite={mode === "ai"}
+                  allowRewrite={isLoggedIn}
                 />
               </div>
             )}
           </div>
         </aside>
       </div>
+
+      {/* 左下角圆形新建按钮 */}
+      {showFabMenu && (
+        <div className="fixed inset-0 z-40" onClick={() => setShowFabMenu(false)} />
+      )}
+      <div className="fixed bottom-6 left-6 z-50">
+        {showFabMenu && (
+          <div className="absolute bottom-14 left-0 min-w-[160px] rounded-xl border bg-card p-1.5 shadow-lg">
+            <button
+              onClick={() => { setShowFabMenu(false); setGenerateError(null); setShowAIDialog(true); }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+            >
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              AI 一键生成
+            </button>
+            <button
+              onClick={() => { setShowFabMenu(false); setShowManualDialog(true); }}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+            >
+              <Wrench className="h-4 w-4 text-primary shrink-0" />
+              手动搭建
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => setShowFabMenu((v) => !v)}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+        >
+          {showFabMenu ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {/* AI 生成 / 手动搭建 对话框 */}
+      <AIGenerateDialog
+        open={showAIDialog}
+        onOpenChange={setShowAIDialog}
+        onSubmit={handleGenerate}
+        isLoading={isGenerating}
+        error={generateError}
+        isLoggedIn={isLoggedIn}
+      />
+      <ManualStartDialog
+        open={showManualDialog}
+        onOpenChange={setShowManualDialog}
+        onStart={handleManualStart}
+      />
 
       {/* 导出容器：仅在导出期间渲染当前目标 slide */}
       {exportTargetIndex !== null && (
@@ -626,18 +654,12 @@ export default function HomePage() {
             pointerEvents: "none",
           }}
         >
-          <div
-            ref={exportDomRef}
-            style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
-          >
+          <div ref={exportDomRef} style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
             {mapSlideToComponent(
               document.slides[exportTargetIndex],
               document.theme.template,
               backgroundType,
-              {
-                pageIndex: exportTargetIndex + 1,
-                pageTotal: document.slides.length,
-              }
+              { pageIndex: exportTargetIndex + 1, pageTotal: document.slides.length }
             )}
           </div>
         </div>

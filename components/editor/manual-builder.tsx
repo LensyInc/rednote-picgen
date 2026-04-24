@@ -65,15 +65,7 @@ export function ManualBuilder({ document, onDocumentChange }: ManualBuilderProps
             placeholder="这套图文的主题"
           />
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-[11px] text-muted-foreground">目标读者</Label>
-          <Input
-            value={document.meta.audience || ""}
-            onChange={(e) => updateMeta("audience", e.target.value)}
-            className="text-sm h-8"
-            placeholder="选填"
-          />
-        </div>
+
       </div>
 
       <Button variant="outline" size="sm" className="w-full" onClick={handleNewDocument}>
