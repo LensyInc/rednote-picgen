@@ -111,7 +111,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full" aria-haspopup="dialog">
+        <Button variant="outline" size="sm" aria-haspopup="dialog">
           <History className="mr-2 h-4 w-4" aria-hidden="true" />
           历史任务
         </Button>
