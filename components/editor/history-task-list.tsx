@@ -46,6 +46,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
   const [tasks, setTasks] = React.useState<TaskItem[]>([]);
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [loadingDoc, setLoadingDoc] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const abortRef = React.useRef<AbortController | null>(null);
   const loadAbortRef = React.useRef<AbortController | null>(null);
@@ -79,6 +80,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
   }
 
   function handleOpenChange(next: boolean) {
+    if (loadingDoc) return;
     setOpen(next);
     if (next) loadHistory();
     else {
@@ -89,6 +91,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
 
   async function handleLoad(taskId: string) {
     setError(null);
+    setLoadingDoc(true);
     loadAbortRef.current?.abort();
     const ctrl = new AbortController();
     loadAbortRef.current = ctrl;
@@ -105,10 +108,21 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
       if (e instanceof Error && e.name === "AbortError") return;
       console.error("Load document error:", e);
       setError("加载任务时发生错误");
+    } finally {
+      setLoadingDoc(false);
     }
   }
 
   return (
+    <>
+    {loadingDoc && (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-card px-10 py-7 shadow-2xl">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm font-medium">正在加载项目...</p>
+        </div>
+      </div>
+    )}
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" aria-haspopup="dialog">
@@ -144,7 +158,8 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
               <button
                 key={task.id}
                 onClick={() => handleLoad(task.id)}
-                className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted"
+                disabled={loadingDoc}
+                className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 role="listitem"
               >
                 <FolderOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -163,5 +178,6 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
         )}
       </DialogContent>
     </Dialog>
+    </>
   );
 }
