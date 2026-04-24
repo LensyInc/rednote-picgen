@@ -129,6 +129,9 @@ as $$
 declare
   v_now timestamptz := now();
 begin
+  -- 使用 FOR UPDATE 防止并发回滚导致余额异常
+  perform 1 from user_credits where user_id = p_user_id for update;
+
   update user_credits
   set balance = balance + 1,
       updated_at = v_now

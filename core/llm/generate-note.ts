@@ -17,7 +17,8 @@ const contentResponseSchema = z.object({
  */
 export async function generateNoteDocument(
   request: GenerateRequest,
-  outline: OutlineResult
+  outline: OutlineResult,
+  pregeneratedTaskId?: string
 ): Promise<NoteDocument> {
   const provider = createProvider();
   const prompt = buildContentPrompt(request, outline.slides);
@@ -33,7 +34,7 @@ export async function generateNoteDocument(
   const parsed = parseLLMJson(response);
   const validated = validateSlides(parsed, request.pageCount);
 
-  const taskId = crypto.randomUUID();
+  const taskId = pregeneratedTaskId || crypto.randomUUID();
   const config = getTemplateConfig(request.template);
 
   return {

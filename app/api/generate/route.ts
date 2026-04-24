@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
     const userId = identity.userId!;
     let consumed = false;
     const startedAt = Date.now();
+    // 预生成 taskId，确保 credit_logs 中记录的 task_id 是真实的 UUID
+    const taskId = crypto.randomUUID();
 
     try {
       console.log(
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
       );
 
       // 扣点
-      const creditOk = await consumeCredit(userId, data.topic);
+      const creditOk = await consumeCredit(userId, taskId);
       if (!creditOk) {
         return NextResponse.json(
           { error: "今日 AI 生成次数已用完，请明天再来或升级 Pro 会员" },
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
       consumed = true;
 
       if (req.signal.aborted) {
-        await refundCredit(userId, data.topic);
+        await refundCredit(userId, taskId);
         return NextResponse.json({ error: "请求已取消" }, { status: 499 });
       }
 
@@ -71,12 +73,12 @@ export async function POST(req: NextRequest) {
       );
 
       if (req.signal.aborted) {
-        await refundCredit(userId, data.topic);
+        await refundCredit(userId, taskId);
         return NextResponse.json({ error: "请求已取消" }, { status: 499 });
       }
 
       // 阶段 2：补全内容
-      const document = await generateNoteDocument(data, outline);
+      const document = await generateNoteDocument(data, outline, taskId);
       console.log(
         `[generate] content ready in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`
       );
@@ -91,7 +93,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ...document, version: newVersion });
     } catch (llmError) {
       if (consumed) {
-        await refundCredit(userId, data.topic);
+        await refundCredit(userId, taskId);
       }
       const message = llmError instanceof Error ? llmError.message : String(llmError);
       const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);

@@ -22,7 +22,10 @@ export function UserMenu() {
   const [showUpgrade, setShowUpgrade] = React.useState(false);
 
   React.useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      queueMicrotask(() => setCredits(null));
+      return;
+    }
     let cancelled = false;
     async function fetchCredits() {
       try {

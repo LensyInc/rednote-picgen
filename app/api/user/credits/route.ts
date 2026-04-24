@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,9 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ error: "未登录" }, { status: 401 });
     }
 
-    const { data, error } = await supabase.rpc("get_user_credit_info", {
+    // 使用 Service Role 绕过 RLS，确保 RPC 能正常访问 user_credits
+    const serviceSupabase = createServiceRoleClient();
+    const { data, error } = await serviceSupabase.rpc("get_user_credit_info", {
       p_user_id: user.id,
     });
 

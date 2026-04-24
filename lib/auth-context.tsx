@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [guestId, setGuestId] = useState<string | null>(() => getGuestId());
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchUser = useCallback(async () => {
     const u = await getCurrentUser();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { z } from "zod";
 
 const mergeSchema = z.object({
@@ -24,7 +25,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "未登录" }, { status: 401 });
     }
 
-    const { error } = await supabase
+    // 使用 Service Role 绕过 RLS，确保能更新 guest_id 记录
+    const serviceSupabase = createServiceRoleClient();
+    const { error } = await serviceSupabase
       .from("tasks")
       .update({ user_id: user.id, guest_id: null })
       .eq("guest_id", parsed.data.guestId);
