@@ -8,6 +8,11 @@ import { ManualBuilder } from "@/components/editor/manual-builder";
 import { PreviewCanvas } from "@/components/preview/preview-canvas";
 import { ThumbnailStrip } from "@/components/preview/thumbnail-strip";
 import { ExportButton } from "@/components/editor/export-button";
+import { AuthDialog } from "@/components/auth/auth-dialog";
+import { UserMenu } from "@/components/auth/user-menu";
+import { useAuth } from "@/lib/auth-context";
+import { fetchWithAuth } from "@/lib/fetch-with-auth";
+import { ensureGuestId } from "@/lib/guest-id";
 import { mockNoteDocument } from "@/core/storage/mock-data";
 import { NoteDocument, Slide } from "@/core/schema/note.schema";
 import { GenerateRequest } from "@/core/schema/request.schema";
@@ -46,6 +51,13 @@ function newSlideId() {
 }
 
 export default function HomePage() {
+  const { isLoggedIn } = useAuth();
+
+  // 确保游客有 guestId
+  React.useEffect(() => {
+    ensureGuestId();
+  }, []);
+
   const [document, setDocument] = React.useState<NoteDocument>(mockNoteDocument);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [mode, setMode] = React.useState<Mode>("ai");
@@ -95,7 +107,7 @@ export default function HomePage() {
     abortControllerRef.current = new AbortController();
     saveTimer.current = setTimeout(async () => {
       try {
-        const res = await fetch("/api/save-document", {
+        const res = await fetchWithAuth("/api/save-document", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ taskId: document.taskId, document }),
@@ -125,7 +137,7 @@ export default function HomePage() {
     setGenerateError(null);
     setExportResult(null);
     try {
-      const res = await fetch("/api/generate", {
+      const res = await fetchWithAuth("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -135,6 +147,12 @@ export default function HomePage() {
         lastSavedRef.current = JSON.stringify(result);
         setDocument(result);
         setSelectedIndex(0);
+      } else if (res.status === 401 || res.status === 403) {
+        const err = await res.json();
+        setGenerateError(err.error || "请先登录以使用 AI 生成功能");
+      } else if (res.status === 402) {
+        const err = await res.json();
+        setGenerateError(err.error || "今日 AI 生成次数已用完");
       } else {
         const err = await res.json();
         setGenerateError(err.error || "生成失败");
@@ -251,14 +269,17 @@ export default function HomePage() {
           </span>
         </div>
 
-        <ExportButton
-          taskId={document.taskId}
-          slideCount={document.slides.length}
-          getExportNode={getExportNode}
-          onRenderTarget={renderExportTarget}
-          onClearTarget={clearExportTarget}
-          onResult={setExportResult}
-        />
+        <div className="flex items-center gap-3">
+          <ExportButton
+            taskId={document.taskId}
+            slideCount={document.slides.length}
+            getExportNode={getExportNode}
+            onRenderTarget={renderExportTarget}
+            onClearTarget={clearExportTarget}
+            onResult={setExportResult}
+          />
+          <UserMenu />
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -299,7 +320,7 @@ export default function HomePage() {
                     {generateError}
                   </div>
                 )}
-                <TopicForm onSubmit={handleGenerate} isLoading={isGenerating} />
+                <TopicForm onSubmit={handleGenerate} isLoading={isGenerating} isLoggedIn={isLoggedIn} />
               </>
             ) : (
               <ManualBuilder document={document} onDocumentChange={setDocument} />
@@ -542,6 +563,8 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      <AuthDialog />
     </div>
   );
 }

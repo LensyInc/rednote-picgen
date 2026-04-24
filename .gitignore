@@ -1,6 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 AGENT.md
-CLAUDE.md
 
 # dependencies
 /node_modules

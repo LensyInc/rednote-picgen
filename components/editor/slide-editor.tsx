@@ -9,6 +9,7 @@ import { Save, Wand2, AlertTriangle } from "lucide-react";
 import { CardEditor } from "./card-editors";
 import { checkSlideOverflow } from "@/core/qa/overflow-check";
 import { CARD_TYPE_META } from "./card-type-meta";
+import { fetchWithAuth } from "@/lib/fetch-with-auth";
 
 interface SlideEditorProps {
   slide: Slide;
@@ -53,7 +54,7 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
     abortRef.current?.abort();
     abortRef.current = new AbortController();
     try {
-      const res = await fetch("/api/rewrite-slide", {
+      const res = await fetchWithAuth("/api/rewrite-slide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -70,6 +71,12 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
         if (typeof data.version === "number") onVersionUpdate(data.version);
         setShowRewrite(false);
         setRewriteInstruction("");
+      } else if (res.status === 401 || res.status === 403) {
+        const err = await res.json();
+        setRewriteError(err.error || "请先登录以使用 AI 重写功能");
+      } else if (res.status === 402) {
+        const err = await res.json();
+        setRewriteError(err.error || "今日 AI 生成次数已用完");
       } else {
         const err = await res.json();
         setRewriteError(err.error || "重写失败");

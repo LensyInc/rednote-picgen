@@ -4,6 +4,9 @@ import { generateOutline } from "@/core/llm/generate-outline";
 import { generateNoteDocument } from "@/core/llm/generate-note";
 import { saveTaskDocument } from "@/core/storage/task-store";
 import { checkLLMAPIKey } from "@/core/llm/check-api-key";
+import { getRequestIdentity, requireLogin } from "@/lib/auth-server";
+import { consumeCredit, refundCredit } from "@/core/db/credits";
+import { upsertTaskMeta } from "@/core/db/task-meta";
 
 // 允许长时间运行（两段 LLM 调用在慢模型上可能超过 1 分钟）
 export const maxDuration = 600;
@@ -11,6 +14,14 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const identity = await getRequestIdentity(req);
+
+    // 游客禁止使用 AI 生成
+    const loginCheck = requireLogin(identity);
+    if (!loginCheck.ok) {
+      return loginCheck.response;
+    }
+
     const body = await req.json();
     const result = generateRequestSchema.safeParse(body);
 
@@ -29,13 +40,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: apiKeyError }, { status: 400 });
     }
 
+    const userId = identity.userId!;
+    let consumed = false;
     const startedAt = Date.now();
+
     try {
       console.log(
         `[generate] start topic="${data.topic}" pages=${data.pageCount} template=${data.template}`
       );
 
+      // 扣点
+      const creditOk = await consumeCredit(userId, data.topic);
+      if (!creditOk) {
+        return NextResponse.json(
+          { error: "今日 AI 生成次数已用完，请明天再来或升级 Pro 会员" },
+          { status: 402 }
+        );
+      }
+      consumed = true;
+
       if (req.signal.aborted) {
+        await refundCredit(userId, data.topic);
         return NextResponse.json({ error: "请求已取消" }, { status: 499 });
       }
 
@@ -46,6 +71,7 @@ export async function POST(req: NextRequest) {
       );
 
       if (req.signal.aborted) {
+        await refundCredit(userId, data.topic);
         return NextResponse.json({ error: "请求已取消" }, { status: 499 });
       }
 
@@ -55,12 +81,18 @@ export async function POST(req: NextRequest) {
         `[generate] content ready in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`
       );
 
-      // 保存到本地文件系统
+      // 保存到 R2
       const newVersion = await saveTaskDocument(document);
       console.log(`[generate] saved taskId=${document.taskId} version=${newVersion}`);
 
+      // 写入 PG 元数据
+      await upsertTaskMeta(document, identity);
+
       return NextResponse.json({ ...document, version: newVersion });
     } catch (llmError) {
+      if (consumed) {
+        await refundCredit(userId, data.topic);
+      }
       const message = llmError instanceof Error ? llmError.message : String(llmError);
       const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
       console.error(`[generate] failed after ${elapsed}s:`, message);

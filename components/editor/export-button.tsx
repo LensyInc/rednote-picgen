@@ -4,6 +4,7 @@ import React from "react";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { fetchWithAuth } from "@/lib/fetch-with-auth";
 
 interface ExportButtonProps {
   taskId: string;
@@ -64,7 +65,7 @@ export function ExportButton({
           cacheBust: true,
         });
 
-        const res = await fetch("/api/export", {
+        const res = await fetchWithAuth("/api/export", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

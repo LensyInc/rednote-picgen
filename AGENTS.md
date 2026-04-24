@@ -34,7 +34,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 ### 入口点
 - **编辑器 UI**：`app/page.tsx` —— 主客户端页面，使用 `useState` 管理唯一的 `document`。
 - **预览（截图目标）**：`app/preview/[taskId]/[slideId]/page.tsx` —— 服务端组件，读取 R2 并渲染单页。**必须保持 `dynamic = "force-dynamic"`**。
-- **API 路由**：`app/api/{generate,export,proxy-image,rewrite-slide,save-document,save-slide,stock-search,tasks,tasks/[taskId]}/route.ts`。
+- **API 路由**：`app/api/{generate,export,proxy-image,rewrite-slide,save-document,save-slide,stock-search,tasks,tasks/[taskId],auth/merge-guest,user/credits,stripe/create-checkout-session,stripe/webhook}/route.ts`。
 
 ### 卡片渲染流水线
 1. `mapSlideToComponent(slide, templateId, backgroundType, options)` 按 `slide.type` 分派组件。
@@ -49,9 +49,10 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 
 ### 数据流
 - `NoteDocument` 是单一数据源；状态存储在 `app/page.tsx` 中。
-- 自动保存：800 ms 防抖 → `POST /api/save-document` → R2 `documents/{taskId}.json`。保存成功后同步 `version` 字段。
-- AI 生成：两段式 LLM（大纲 → 内容）产出完整的 `NoteDocument`，`version` 初始为 1。
-- 重写：`POST /api/rewrite-slide` 修改单页，采用 version-based 乐观锁防止并发冲突，返回新 `version`。
+- 自动保存：800 ms 防抖 → `POST /api/save-document` → R2 `documents/{taskId}.json` + PostgreSQL `tasks` 元数据。保存成功后同步 `version` 字段。
+- AI 生成：两段式 LLM（大纲 → 内容）产出完整的 `NoteDocument`，`version` 初始为 1。仅登录用户可用，消耗 1 点数，失败自动回滚。
+- 重写：`POST /api/rewrite-slide` 修改单页，采用 version-based 乐观锁防止并发冲突，返回新 `version`。仅登录用户可用，消耗 1 点数。
+- 历史任务：`GET /api/tasks` 从 PostgreSQL 按 `user_id` 或 `guest_id` 过滤，不再全量 ListObjectsV2。
 
 ## 类型/schema 规范
 
@@ -68,6 +69,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - `saveTaskDocument` 在写入前会校验文档结构（`noteDocumentSchema.safeParse()`），并递增 `version` 字段后返回新版本号。
 - 输出路径：`documents/{taskId}.json`（文档）、`exports/{taskId}/slide-{n}.{ext}`（PNG）、`assets/{taskId}/`（素材图片）。这些是 R2 对象键前缀。
 - 不要向版本控制提交 `output/*` 中的任何内容，除了 `.gitkeep`。这些目录已被 `.gitignore` 排除。
+- 数据库操作统一使用 `core/db/` 目录下的模块（`task-meta.ts`、`credits.ts`），底层为 Supabase PostgreSQL。
 
 ## API 路由约定
 
@@ -75,6 +77,8 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - 预览和导出路由需导出 `dynamic = "force-dynamic"`，避免缓存导致截图过期。
 - 日志前缀使用 `[模块名]`，便于本地 grep 排查。
 - 并发写保护：`rewrite-slide` 和 `save-slide` 使用 `version` 字段做乐观锁，写入时递增 version，冲突时返回 409。
+- 所有写操作 API 需鉴权：使用 `getRequestIdentity(req)` 获取 `userId`/`guestId`，再调用 `canAccessTask()` 校验权限。
+- AI 接口（`generate`、`rewrite-slide`）拒绝游客（返回 403），点数不足返回 402，失败时回滚点数。
 
 ## LLM 配置
 

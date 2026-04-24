@@ -4,6 +4,7 @@ import React from "react";
 import { NoteDocument } from "@/core/schema/note.schema";
 import { Button } from "@/components/ui/button";
 import { History, FolderOpen, Clock } from "lucide-react";
+import { fetchWithAuth } from "@/lib/fetch-with-auth";
 import {
   Dialog,
   DialogContent,
@@ -61,7 +62,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
     abortRef.current?.abort();
     abortRef.current = new AbortController();
     try {
-      const res = await fetch("/api/tasks", { signal: abortRef.current.signal });
+      const res = await fetchWithAuth("/api/tasks", { signal: abortRef.current.signal });
       const result = await safeParseResponse<{ tasks: TaskItem[] }>(res);
       if (result.ok) {
         setTasks(result.data.tasks || []);
@@ -92,7 +93,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
     const ctrl = new AbortController();
     loadAbortRef.current = ctrl;
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, { signal: ctrl.signal });
+      const res = await fetchWithAuth(`/api/tasks/${taskId}`, { signal: ctrl.signal });
       const result = await safeParseResponse<NoteDocument>(res);
       if (result.ok) {
         onLoad(result.data);

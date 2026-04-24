@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Loader2 } from "lucide-react";
 import { proxyImageUrl } from "@/lib/proxy-image";
+import { fetchWithAuth } from "@/lib/fetch-with-auth";
 
 interface ImageCandidatePickerProps {
   query?: string | null;
@@ -30,7 +31,7 @@ export function ImageCandidatePicker({
     abortRef.current = ctrl;
     setLoading(true);
     try {
-      const res = await fetch("/api/stock-search", {
+      const res = await fetchWithAuth("/api/stock-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: q }),

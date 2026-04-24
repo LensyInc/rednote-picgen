@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { saveTaskDocument } from "@/core/storage/task-store";
 import { noteDocumentSchema } from "@/core/schema/note.schema";
+import { getRequestIdentity } from "@/lib/auth-server";
+import { upsertTaskMeta, canAccessTask, taskExists } from "@/core/db/task-meta";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,7 @@ const taskIdSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 
 export async function POST(req: NextRequest) {
   try {
+    const identity = await getRequestIdentity(req);
     const body = await req.json();
     const { taskId, document: rawDocument } = body;
 
@@ -41,7 +44,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 鉴权：已保存的任务必须属于自己
+    const existing = await taskExists(taskId);
+    if (existing) {
+      const hasAccess = await canAccessTask(taskId, identity);
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: "无权保存此任务" },
+          { status: 403 }
+        );
+      }
+    }
+
     const newVersion = await saveTaskDocument(parseResult.data);
+
+    // 写入/更新 PG 元数据
+    await upsertTaskMeta(parseResult.data, identity);
+
     return NextResponse.json({ success: true, version: newVersion });
   } catch (e) {
     console.error("[save-document] 保存失败:", e);

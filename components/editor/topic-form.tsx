@@ -18,11 +18,12 @@ import { Switch } from "@/components/ui/switch";
 interface TopicFormProps {
   onSubmit: (data: GenerateRequest) => void;
   isLoading?: boolean;
+  isLoggedIn?: boolean;
 }
 
 const PAGE_COUNT_OPTIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
-export function TopicForm({ onSubmit, isLoading = false }: TopicFormProps) {
+export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: TopicFormProps) {
   const [topic, setTopic] = React.useState("");
   const [audience, setAudience] = React.useState("");
   const [tone, setTone] = React.useState<GenerateRequest["tone"]>("gentle");
@@ -204,7 +205,15 @@ export function TopicForm({ onSubmit, isLoading = false }: TopicFormProps) {
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      {!isLoggedIn && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p className="text-xs text-amber-700">
+            游客无法使用 AI 生成功能，请先登录。
+          </p>
+        </div>
+      )}
+
+      <Button type="submit" className="w-full" disabled={isLoading || !isLoggedIn}>
         {isLoading ? "生成中..." : "生成内容"}
       </Button>
     </form>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { loadTaskDocument, saveTaskDocument } from "@/core/storage/task-store";
 import { slideSchema } from "@/core/schema/note.schema";
+import { getRequestIdentity } from "@/lib/auth-server";
+import { canAccessTask } from "@/core/db/task-meta";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,7 @@ const taskIdSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 
 export async function POST(req: NextRequest) {
   try {
+    const identity = await getRequestIdentity(req);
     const body = await req.json();
     const { taskId, slide } = body;
 
@@ -22,6 +25,12 @@ export async function POST(req: NextRequest) {
     const taskIdResult = taskIdSchema.safeParse(taskId);
     if (!taskIdResult.success) {
       return NextResponse.json({ error: "taskId 格式无效" }, { status: 400 });
+    }
+
+    // 鉴权
+    const hasAccess = await canAccessTask(taskId, identity);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "无权访问此任务" }, { status: 403 });
     }
 
     // 校验 slide 结构
