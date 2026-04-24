@@ -49,8 +49,8 @@ AI 驱动的小红书风格图文卡片设计与导出工具。
 4. 点击 **Deploy**
 
 > **⚠️ 安全说明**：
-> - **两个 bucket 都保持关闭 public access**。文档 JSON 只允许服务端 API 通过 S3 SDK 读写；导出的 PNG 由服务端在上传后生成**预签名 URL**（默认 7 天有效）返回给前端，过期后自动失效。
-> - 素材图片（Pexels / Pixabay）不存 R2，直接走 `/api/proxy-image` 代理加载，无需 bucket 公开访问。
+> - **两个 bucket 都保持关闭 public access**。文档 JSON 只允许服务端 API 通过 S3 SDK 读写；导出的 PNG 由服务端在上传后生成**预签名 URL**（默认 1 小时有效）返回给前端，过期后自动失效。
+> - 素材图片（Pexels / Pixabay）不存 R2，直接走 `/api/proxy-image` 代理加载，代理有域名白名单和重定向验证。
 
 ---
 
@@ -62,8 +62,8 @@ AI 驱动的小红书风格图文卡片设计与导出工具。
 - **8 套配色主题**：温润桃粉、雾蓝商务、奶油琥珀、素雅极简、薰衣草灰、陶土暖褐、深林墨绿、柔粉日常
 - **4 种背景纹理**：纯色、渐变、波点、横线
 - **可视化编辑器**：实时预览、拖拽调整页面顺序、单页 AI 重写、文本溢出检查
-- **一键导出 PNG**：前端 `html-to-image` 直出 2484×3320 高清图，上传至 R2 并返回 CDN 下载链接
-- **自动保存**：文档变更自动持久化到 R2
+- **一键导出 PNG**：前端 `html-to-image` 逐页截图（1242×1660，pixelRatio 1.5），上传至 R2 并返回预签名下载链接
+- **自动保存**：文档变更自动持久化到 R2，version 字段乐观锁防并发冲突
 - **可选真实图片**：集成 Pexels / Pixabay 图库搜索（需配置 API Key）
 
 ## 技术栈
@@ -196,8 +196,9 @@ picgen/
 5. 使用「配色」和「背景」切换视觉风格
 
 ### 导出 PNG
-- 点击顶部「导出 PNG」按钮，前端会将所有页面渲染为高清图片（`pixelRatio: 2`，2484×3320）
-- 图片自动上传至 R2 私有 bucket，导出完成后左侧面板会显示每张图片的**预签名下载链接**（默认 7 天有效）
+- 点击顶部「导出 PNG」按钮，前端会逐页渲染目标 slide 的 DOM（同一时间仅挂载一页），截图后立即卸载
+- 每页截图使用 `html-to-image`（`pixelRatio: 1.5`，实际渲染 1242×1660），自动上传 R2 私有 bucket
+- 导出完成后左侧面板显示每张图片的**预签名下载链接**（1 小时有效）
 - 所有外部图片（Pexels / Pixabay）在截图前会自动经 `/api/proxy-image` 代理为同源地址，避免 canvas 跨域污染
 
 ## 可用脚本
@@ -212,19 +213,19 @@ picgen/
 
 ## 数据持久化
 
-所有生成的文档自动保存为 JSON 对象到 R2 私有 bucket 的 `documents/{taskId}.json`。历史任务列表从该前缀读取，支持随时加载继续编辑。
+所有生成的文档自动保存为 JSON 对象到 R2 私有 bucket 的 `documents/{taskId}.json`，每次保存递增 `version` 字段用于并发冲突检测。历史任务列表支持游标分页，随时加载继续编辑。
 
-导出的 PNG 保存到独立的 R2 bucket：`exports/{taskId}/slide-{n}.png`。该 bucket 同样保持私有，前端通过服务端生成的**预签名 URL** 下载。
+导出的 PNG 保存到独立的 R2 bucket：`exports/{taskId}/slide-{n}.{ext}`。该 bucket 同样保持私有，前端通过服务端生成的**预签名 URL**（1 小时有效）下载。
 
 R2 bucket 结构：
 ```
 picgen-data/           # 私有 bucket（R2_PRIVATE_BUCKET_NAME）
 └── documents/
-    └── task-xxx.json
+    └── {uuid}.json
 
 picgen-exports/        # 私有 bucket（R2_EXPORT_BUCKET_NAME）
 └── exports/
-    └── task-xxx/
+    └── {uuid}/
         ├── slide-1.png
         └── slide-2.png
 ```
@@ -239,7 +240,7 @@ picgen-exports/        # 私有 bucket（R2_EXPORT_BUCKET_NAME）
 
 - **R2 配置是部署的前提**：如果未正确配置 R2 环境变量，应用将无法保存文档和导出图片
 - **两个 bucket 均保持私有**：`picgen-data` 和 `picgen-exports` 都不需要开启 public access。导出的 PNG 通过预签名 URL 临时授权下载，过期后自动失效
-- **预签名 URL 有效期**：导出链接默认 7 天有效。如需调整，修改 `app/api/export/route.ts` 中的 `expiresIn` 参数
+- **预签名 URL 有效期**：导出链接默认 1 小时有效。如需调整，修改 `core/storage/s3-client.ts` 中 `getSignedDownloadUrl` 的 `expiresIn` 参数
 - **素材图片不存 R2**：Pexels / Pixabay 图片直接走外部 URL，经 `/api/proxy-image` 代理加载，无需 R2 公开访问
 - **AI 生成调用为同步长请求**：已设置 `maxDuration = 600` 秒
 - **预览路由禁用缓存**：`/preview/[taskId]/[slideId]` 保持 `dynamic = "force-dynamic"`，确保截图时内容最新

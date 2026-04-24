@@ -33,36 +33,40 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 
 ### 入口点
 - **编辑器 UI**：`app/page.tsx` —— 主客户端页面，使用 `useState` 管理唯一的 `document`。
-- **预览（截图目标）**：`app/preview/[taskId]/[slideId]/page.tsx` —— 服务端组件，读取磁盘并渲染单页。**必须保持 `dynamic = "force-dynamic"`**。
-- **API 路由**：`app/api/{generate,export,rewrite-slide,save-document,save-slide,tasks,stock-search}/route.ts`。
+- **预览（截图目标）**：`app/preview/[taskId]/[slideId]/page.tsx` —— 服务端组件，读取 R2 并渲染单页。**必须保持 `dynamic = "force-dynamic"`**。
+- **API 路由**：`app/api/{generate,export,proxy-image,rewrite-slide,save-document,save-slide,stock-search,tasks,tasks/[taskId]}/route.ts`。
 
 ### 卡片渲染流水线
 1. `mapSlideToComponent(slide, templateId, backgroundType, options)` 按 `slide.type` 分派组件。
 2. `getTheme(templateId)` 返回 `Theme` 对象（颜色 + 圆角 + 字体）。
 3. 每个卡片组件接收**完全一致**的 props 结构：
    ```ts
-   { slide: Slide; theme: Theme; backgroundType?: string; pageIndex?: number; pageTotal?: number }
+   { slide: Slide; theme: Theme; backgroundType?: BackgroundType; pageIndex?: number; pageTotal?: number }
    ```
 4. `CardContainer` 应用背景层（`solid` | `gradient` | `dots` | `lines`）。
 5. 画布尺寸为 **1242 × 1660 px**（定义在 `core/render/card-dimensions.ts`）。不要在其他位置硬编码这些值。
+6. 导出时仅渲染目标 slide 的 DOM（`exportTargetIndex` 控制，截图后立即卸载），避免常驻 12 页子树。
 
 ### 数据流
 - `NoteDocument` 是单一数据源；状态存储在 `app/page.tsx` 中。
-- 自动保存：800 ms 防抖 → `POST /api/save-document` → `output/json/{taskId}.json`。
-- AI 生成：两段式 LLM（大纲 → 内容）产出完整的 `NoteDocument`。
-- 重写：`POST /api/rewrite-slide` 修改单页，保存文档，返回该页。
+- 自动保存：800 ms 防抖 → `POST /api/save-document` → R2 `documents/{taskId}.json`。保存成功后同步 `version` 字段。
+- AI 生成：两段式 LLM（大纲 → 内容）产出完整的 `NoteDocument`，`version` 初始为 1。
+- 重写：`POST /api/rewrite-slide` 修改单页，采用 version-based 乐观锁防止并发冲突，返回新 `version`。
 
 ## 类型/schema 规范
 
 - **Zod 是强制的**：所有运行时数据结构均定义在 `core/schema/*.schema.ts` 中。
 - 从 schema 文件导出 `type`；业务逻辑中绝不使用 `any`。
+- 枚举统一定义在 `core/schema/request.schema.ts`：`slideTypeEnum`、`backgroundTypeEnum`、`sourceEnum`、`pageCountSchema`、`templateEnum`、`toneEnum`、`noteTypeEnum`。
+- `BackgroundType` 类型定义在 `components/templates/shared/theme.ts`（通过 `z.infer<typeof backgroundTypeEnum>` 推导），card-container 等文件从 `theme.ts` 导入。
 - API 请求体必须通过 `schema.safeParse()` 校验；失败时返回 `{ error: string, details?: unknown }`。
 
 ## 文件/存储规则
 
-- 所有本地文件系统操作统一使用 `core/storage/task-store.ts`。
-- 写入必须是原子的（`writeFileAtomic`：先写临时文件 → 再重命名）。
-- 输出目录：`output/json/`（文档）、`output/export/`（PNG）、`output/assets/`（素材图片）。
+- 所有文件存储操作统一使用 `core/storage/task-store.ts`（底层为 R2 S3 SDK）。
+- S3 客户端通过 Proxy 懒初始化（`core/storage/s3-client.ts`），bucket 名通过 `getPrivateBucket()` / `getExportBucket()` 函数获取。
+- `saveTaskDocument` 在写入前会校验文档结构（`noteDocumentSchema.safeParse()`），并递增 `version` 字段后返回新版本号。
+- 输出路径：`documents/{taskId}.json`（文档）、`exports/{taskId}/slide-{n}.{ext}`（PNG）、`assets/{taskId}/`（素材图片）。这些是 R2 对象键前缀。
 - 不要向版本控制提交 `output/*` 中的任何内容，除了 `.gitkeep`。这些目录已被 `.gitignore` 排除。
 
 ## API 路由约定
@@ -70,6 +74,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - 导出 `maxDuration`（例如生成接口使用 `export const maxDuration = 600`）。
 - 预览和导出路由需导出 `dynamic = "force-dynamic"`，避免缓存导致截图过期。
 - 日志前缀使用 `[模块名]`，便于本地 grep 排查。
+- 并发写保护：`rewrite-slide` 和 `save-slide` 使用 `version` 字段做乐观锁，写入时递增 version，冲突时返回 409。
 
 ## LLM 配置
 
@@ -77,6 +82,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - 通过 `DEFAULT_LLM_PROVIDER=qwen|deepseek` 切换。
 - 必需环境变量：`QWEN_API_KEY`（默认）或 `DEEPSEEK_API_KEY`。可选：`PEXELS_API_KEY`、`PIXABAY_API_KEY`（用于素材图片）。
 - `.env.local` 已加入 `.gitignore`；切勿提交。
+- LLM 输出经过 `parseLLMJson` 解析（平衡花括号算法处理嵌套 JSON），然后通过 Zod schema 校验。
 
 ## 新增 slide 类型（当前已有 13 种）
 
@@ -94,6 +100,8 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - 不要在卡片组件中硬编码颜色。从 `theme.*` 读取。
 - 不要在 Tailwind 中使用 `@apply`。
 - 圆角使用 `radius(theme, size)`，字体使用 `fontClass(theme)`。
+- 颜色+透明度使用 `withAlpha(hex, alpha)`，不要用 `${color}60` 这种 hex 拼接。
+- 布局尺寸使用 `CARD_WIDTH` / `CARD_HEIGHT` 常量（`core/render/card-dimensions.ts`），不要硬编码。
 - 生产代码中不要使用 `debugger`。
 
 ## 说明文件备注
