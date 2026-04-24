@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
+
 interface TopicFormProps {
   onSubmit: (data: GenerateRequest) => void;
   isLoading?: boolean;
@@ -24,12 +25,12 @@ interface TopicFormProps {
 const PAGE_COUNT_OPTIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: TopicFormProps) {
+  const [projectName, setProjectName] = React.useState("");
   const [topic, setTopic] = React.useState("");
   const [audience, setAudience] = React.useState("");
   const [tone, setTone] = React.useState<GenerateRequest["tone"]>("gentle");
   const [noteType, setNoteType] = React.useState<GenerateRequest["noteType"]>("listicle");
   const [pageCount, setPageCount] = React.useState<number>(6);
-  const [template, setTemplate] = React.useState<GenerateRequest["template"]>("template-a");
   const [includeRealImages, setIncludeRealImages] = React.useState(false);
   const [userOutline, setUserOutline] = React.useState("");
   const [showOutline, setShowOutline] = React.useState(false);
@@ -39,12 +40,13 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
     e.preventDefault();
     setErrors([]);
     const data: GenerateRequest = {
+      projectName,
       topic,
       audience,
       tone,
       noteType,
       pageCount,
-      template,
+      template: "template-a",
       includeRealImages,
       userOutline: userOutline.trim() ? userOutline.trim() : undefined,
     };
@@ -60,6 +62,17 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="projectName">项目名称</Label>
+        <Input
+          id="projectName"
+          placeholder="例如：好物推荐、旅行日记…"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          required
+        />
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="topic">选题主题</Label>
         <Input
@@ -165,25 +178,6 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>模板</Label>
-        <Select value={template} onValueChange={(v) => setTemplate(v as GenerateRequest["template"])}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="template-a">温润桃粉</SelectItem>
-            <SelectItem value="template-b">雾蓝商务</SelectItem>
-            <SelectItem value="template-c">奶油琥珀</SelectItem>
-            <SelectItem value="template-d">素雅极简</SelectItem>
-            <SelectItem value="template-e">薰衣草灰</SelectItem>
-            <SelectItem value="template-f">陶土暖褐</SelectItem>
-            <SelectItem value="template-g">深林墨绿</SelectItem>
-            <SelectItem value="template-h">柔粉日常</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       <div className="flex items-center justify-between rounded-lg border p-3">
         <div className="space-y-0.5">
           <Label className="text-sm">插入真实图片</Label>
@@ -213,7 +207,9 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isLoading || !isLoggedIn}>
+      <p className="text-xs text-muted-foreground">模板可以后续选择、修改</p>
+
+      <Button type="submit" className="w-full" disabled={isLoading || !isLoggedIn || !projectName.trim()}>
         {isLoading ? "生成中..." : "生成内容"}
       </Button>
     </form>

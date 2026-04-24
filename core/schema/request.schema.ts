@@ -40,12 +40,13 @@ export type BackgroundType = z.infer<typeof backgroundTypeEnum>;
 export const sourceEnum = z.enum(["pexels", "pixabay"]);
 
 export const generateRequestSchema = z.object({
-  topic: z.string().min(1, "主题不能为空").max(200),
+  projectName: z.string().min(1, "项目名称不能为空").max(200),
+  topic: z.string().min(1, "选题主题不能为空").max(200),
   audience: z.string().min(1, "受众不能为空").max(200),
   tone: toneEnum,
   noteType: noteTypeEnum,
   pageCount: pageCountSchema,
-  template: templateEnum,
+  template: templateEnum.default("template-a"),
   includeRealImages: z.boolean().optional(),
   userOutline: z.string().max(4000).optional(),
 });

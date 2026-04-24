@@ -86,14 +86,20 @@ export async function POST(req: NextRequest) {
         `[generate] content ready in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`
       );
 
+      // 用项目名称覆盖 meta.topic（选题主题仅用于 AI 生成，不作为显示名）
+      const namedDocument = {
+        ...document,
+        meta: { ...document.meta, topic: data.projectName },
+      };
+
       // 保存到 R2
-      const newVersion = await saveTaskDocument(document);
-      console.log(`[generate] saved taskId=${document.taskId} version=${newVersion}`);
+      const newVersion = await saveTaskDocument(namedDocument);
+      console.log(`[generate] saved taskId=${namedDocument.taskId} version=${newVersion}`);
 
       // 写入 PG 元数据
-      await upsertTaskMeta(document, identity);
+      await upsertTaskMeta(namedDocument, identity);
 
-      return NextResponse.json({ ...document, version: newVersion });
+      return NextResponse.json({ ...namedDocument, version: newVersion });
     } catch (llmError) {
       if (consumed) {
         await refundCredit(userId, taskId);

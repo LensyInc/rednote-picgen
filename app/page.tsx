@@ -201,18 +201,11 @@ export default function HomePage() {
     }
   }
 
-  function handleManualStart(topic: string, templateId: TemplateId) {
+  function handleManualStart(projectName: string) {
     const blank = createBlankDocument();
-    const theme = THEMES[templateId];
     const doc: NoteDocument = {
       ...blank,
-      meta: { ...blank.meta, topic: topic || "新建图文" },
-      theme: {
-        ...blank.theme,
-        template: templateId,
-        primaryColor: theme.primary,
-        secondaryColor: theme.surfaceSoft,
-      },
+      meta: { ...blank.meta, topic: projectName },
     };
     setDocument(doc);
     setSelectedIndex(0);

@@ -164,14 +164,11 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
               >
                 <FolderOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{task.topic}</p>
-                  <p className="text-xs text-muted-foreground font-mono truncate">
-                    {task.id}
+                  <p className="truncate text-sm font-medium">{task.topic || "未命名项目"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {task.date}
-                </span>
               </button>
             ))}
           </div>
