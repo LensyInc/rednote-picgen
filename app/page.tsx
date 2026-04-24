@@ -628,7 +628,6 @@ export default function HomePage() {
             left: "-9999px",
             top: "-9999px",
             width: CARD_WIDTH,
-            visibility: "hidden",
             pointerEvents: "none",
           }}
         >
