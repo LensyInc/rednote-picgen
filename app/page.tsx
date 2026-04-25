@@ -27,12 +27,22 @@ import {
   X,
   ChevronDown,
   Paintbrush,
+  Loader2,
+  Download,
 } from "lucide-react";
 import { CARD_TYPES, createEmptySlide } from "@/components/editor/card-type-meta";
 import { THEMES } from "@/components/templates/shared/theme";
 import { templateEnum, type BackgroundType } from "@/core/schema/request.schema";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { z } from "zod";
 
 type TemplateId = z.infer<typeof templateEnum>;
@@ -98,6 +108,8 @@ export default function HomePage() {
     failedCount: number;
     urls: string[];
   } | null>(null);
+  const [exporting, setExporting] = React.useState(false);
+  const [exportProgress, setExportProgress] = React.useState(0);
 
   // 导出时按需挂载目标 slide DOM（通过 exportTargetIndex 控制）
   const [exportTargetIndex, setExportTargetIndex] = React.useState<number | null>(null);
@@ -116,6 +128,11 @@ export default function HomePage() {
 
   const clearExportTarget = React.useCallback(() => {
     setExportTargetIndex(null);
+  }, []);
+
+  const handleExportStateChange = React.useCallback((isExporting: boolean, progress: number) => {
+    setExporting(isExporting);
+    setExportProgress(progress);
   }, []);
 
   const safeIndex = Math.min(selectedIndex, document.slides.length - 1);
@@ -383,6 +400,7 @@ export default function HomePage() {
             getExportNode={getExportNode}
             onRenderTarget={renderExportTarget}
             onClearTarget={clearExportTarget}
+            onExportStateChange={handleExportStateChange}
             onResult={setExportResult}
           />
           <UserMenu />
@@ -543,35 +561,54 @@ export default function HomePage() {
               </div>
             )}
           </div>
-          {exportResult && (
-            <div className={`shrink-0 border-t px-3 py-2.5 text-xs ${
-              exportResult.success
-                ? "bg-green-50 text-green-700"
-                : "bg-yellow-50 text-yellow-700"
-            }`}>
-              <p className="font-medium">
-                {exportResult.success ? "导出完成" : "部分导出成功"} · 成功 {exportResult.exportedCount} 张
-                {exportResult.failedCount > 0 && `，失败 ${exportResult.failedCount} 张`}
-              </p>
-              {exportResult.urls.length > 0 && (
-                <div className="mt-1.5 space-y-1">
-                  {exportResult.urls.map((url, i) => (
-                    <a
-                      key={i}
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block truncate text-blue-600 hover:underline"
-                    >
-                      下载 slide-{i + 1}.png
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </aside>
       </div>
+
+      {/* 导出遮罩 */}
+      {exporting && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-xl bg-card p-8 shadow-xl">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm font-medium">
+              正在导出 {exportProgress}/{document.slides.length} …
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 导出结果下载对话框 */}
+      <Dialog open={!!exportResult} onOpenChange={(open) => { if (!open) setExportResult(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {exportResult?.success ? "导出完成" : "部分导出成功"}
+            </DialogTitle>
+            <DialogDescription>
+              成功 {exportResult?.exportedCount} 张
+              {(exportResult?.failedCount ?? 0) > 0 && `，失败 ${exportResult?.failedCount} 张`}
+            </DialogDescription>
+          </DialogHeader>
+          {exportResult && exportResult.urls.length > 0 && (
+            <div className="max-h-64 overflow-y-auto">
+              <ul className="space-y-2">
+                {exportResult.urls.map((url, i) => (
+                  <li key={i}>
+                    <a
+                      href={url}
+                      download={`slide-${i + 1}.png`}
+                      className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-muted"
+                    >
+                      <Download className="h-4 w-4 shrink-0 text-primary" />
+                      <span className="truncate">slide-{i + 1}.png</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <DialogFooter showCloseButton />
+        </DialogContent>
+      </Dialog>
 
       {/* 左下角圆形新建按钮 */}
       {showFabMenu && (

@@ -12,6 +12,7 @@ interface ExportButtonProps {
   getExportNode: () => HTMLDivElement | null;
   onRenderTarget: (index: number) => void;
   onClearTarget: () => void;
+  onExportStateChange?: (exporting: boolean, progress: number) => void;
   onResult?: (result: {
     success: boolean;
     exportedCount: number;
@@ -26,6 +27,7 @@ export function ExportButton({
   getExportNode,
   onRenderTarget,
   onClearTarget,
+  onExportStateChange,
   onResult,
 }: ExportButtonProps) {
   const [exporting, setExporting] = React.useState(false);
@@ -44,6 +46,7 @@ export function ExportButton({
   const handleExport = React.useCallback(async () => {
     setExporting(true);
     setProgress(0);
+    onExportStateChange?.(true, 0);
     abortRef.current?.abort();
     abortRef.current = new AbortController();
 
@@ -62,7 +65,10 @@ export function ExportButton({
       const node = getExportNode();
       if (!node) {
         failed.push(i);
-        if (mountedRef.current) setProgress(i + 1);
+        if (mountedRef.current) {
+          setProgress(i + 1);
+          onExportStateChange?.(true, i + 1);
+        }
         continue;
       }
 
@@ -97,7 +103,10 @@ export function ExportButton({
         failed.push(i);
       }
 
-      if (mountedRef.current) setProgress(i + 1);
+      if (mountedRef.current) {
+        setProgress(i + 1);
+        onExportStateChange?.(true, i + 1);
+      }
     }
 
     abortRef.current = null;
@@ -105,6 +114,7 @@ export function ExportButton({
 
     if (mountedRef.current) {
       setExporting(false);
+      onExportStateChange?.(false, slideCount);
       onResult?.({
         success: failed.length === 0,
         exportedCount: urls.length,
@@ -112,7 +122,7 @@ export function ExportButton({
         urls,
       });
     }
-  }, [taskId, slideCount, getExportNode, onRenderTarget, onClearTarget, onResult]);
+  }, [taskId, slideCount, getExportNode, onRenderTarget, onClearTarget, onExportStateChange, onResult]);
 
   return (
     <Button size="sm" onClick={handleExport} disabled={exporting} aria-busy={exporting}>
