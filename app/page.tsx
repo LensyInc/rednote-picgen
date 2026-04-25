@@ -596,6 +596,8 @@ export default function HomePage() {
                     <a
                       href={url}
                       download={`slide-${i + 1}.png`}
+                      target="_blank"
+                      rel="noreferrer"
                       className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-muted"
                     >
                       <Download className="h-4 w-4 shrink-0 text-primary" />
