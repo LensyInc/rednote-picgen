@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { query } = result.data;
-    const results = await searchStock({ query, perPage: 5 });
+    const results = await searchStock({ query, perPage: 10 });
 
     return NextResponse.json({ results });
   } catch (e) {

@@ -180,10 +180,7 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
 
       <div className="flex items-center justify-between rounded-lg border p-3">
         <div className="space-y-0.5">
-          <Label className="text-sm">插入真实图片</Label>
-          <p className="text-xs text-muted-foreground">
-            需要配置图片素材 API Key
-          </p>
+          <Label className="text-sm">插入图片</Label>
         </div>
         <Switch
           checked={includeRealImages}

@@ -30,6 +30,12 @@ export async function searchStock(options: SearchOptions): Promise<StockSearchRe
     if (combined.length >= perPage) break;
   }
 
+  // 随机打乱结果顺序，让每次搜索的体验不同
+  for (let i = combined.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [combined[i], combined[j]] = [combined[j], combined[i]];
+  }
+
   if (combined.length === 0 && query.trim()) {
     console.warn(`[search] both APIs returned 0 results for query="${query}"`);
   }

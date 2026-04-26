@@ -166,15 +166,16 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
 
       {showRewrite && (
         <div ref={rewritePanelRef} className="space-y-2 rounded-md border bg-muted/20 p-2">
-          <Label htmlFor={rewriteTextareaId} className="text-xs">重写指令（可选）</Label>
+          <Label htmlFor={rewriteTextareaId} className="text-xs">重写指令</Label>
           <Textarea
             id={rewriteTextareaId}
             value={rewriteInstruction}
             onChange={(e) => setRewriteInstruction(e.target.value)}
             className="min-h-[60px] resize-none text-sm"
             placeholder="例如：让语气更中性、缩短要点..."
+            required
           />
-          <Button size="sm" className="w-full" onClick={handleRewrite} disabled={isRewriting}>
+          <Button size="sm" className="w-full" onClick={handleRewrite} disabled={!rewriteInstruction.trim() || isRewriting}>
             {isRewriting ? "重写中..." : "确认重写"}
           </Button>
         </div>
