@@ -118,6 +118,7 @@ export default function HomePage() {
   } | null>(null);
   const [exporting, setExporting] = React.useState(false);
   const [exportProgress, setExportProgress] = React.useState(0);
+  const [isNavigatingHome, setIsNavigatingHome] = React.useState(false);
 
   // 导出时按需挂载目标 slide DOM（通过 exportTargetIndex 控制）
   const [exportTargetIndex, setExportTargetIndex] = React.useState<number | null>(null);
@@ -142,6 +143,37 @@ export default function HomePage() {
     setExporting(isExporting);
     setExportProgress(progress);
   }, []);
+
+  React.useEffect(() => {
+    if (!isNavigatingHome) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await fetchWithAuth("/api/save-document", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: document.taskId,
+            document,
+            version: document.version,
+          }),
+        });
+      } catch {
+        // 忽略保存错误
+      }
+      if (cancelled) return;
+      setHasStarted(false);
+      setSelectedIndex(0);
+      setDocument(createBlankDocument());
+      setRightPanel("thumbnails");
+      setExportResult(null);
+      localStorage.removeItem("picgen_editing_task");
+      setIsNavigatingHome(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isNavigatingHome, document]);
 
   const safeIndex = Math.min(selectedIndex, document.slides.length - 1);
   const currentSlide: Slide = document.slides[safeIndex] ?? document.slides[0];
@@ -379,6 +411,14 @@ export default function HomePage() {
     setSelectedIndex(index + 1);
   }
 
+  if (isNavigatingHome) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (restoring) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-background">
@@ -445,27 +485,7 @@ export default function HomePage() {
       <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-3">
         <div className="flex items-center gap-4 min-w-0">
           <button
-            onClick={async () => {
-              try {
-                await fetchWithAuth("/api/save-document", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    taskId: document.taskId,
-                    document,
-                    version: document.version,
-                  }),
-                });
-              } catch {
-                // 自动保存失败也继续返回首页
-              }
-              setHasStarted(false);
-              setSelectedIndex(0);
-              setDocument(createBlankDocument());
-              setRightPanel("thumbnails");
-              setExportResult(null);
-              localStorage.removeItem("picgen_editing_task");
-            }}
+            onClick={() => setIsNavigatingHome(true)}
             className="text-lg font-black shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             style={{ fontFamily: "var(--font-wenkai)" }}
           >
