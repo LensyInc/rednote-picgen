@@ -31,8 +31,8 @@ import {
   Download,
 } from "lucide-react";
 import { CARD_TYPES, createEmptySlide } from "@/components/editor/card-type-meta";
-import { THEMES } from "@/components/templates/shared/theme";
-import { templateEnum, type BackgroundType } from "@/core/schema/request.schema";
+import { THEMES, type BackgroundType } from "@/components/templates/shared/theme";
+import { templateEnum } from "@/core/schema/request.schema";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import {

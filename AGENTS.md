@@ -78,7 +78,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - 日志前缀使用 `[模块名]`，便于本地 grep 排查。
 - 并发写保护：`rewrite-slide` 和 `save-slide` 使用 `version` 字段做乐观锁，写入时递增 version，冲突时返回 409。
 - 所有写操作 API 需鉴权：使用 `getRequestIdentity(req)` 获取 `userId`/`guestId`，再调用 `canAccessTask()` 校验权限。
-- AI 接口（`generate`、`rewrite-slide`）拒绝游客（返回 403），点数不足返回 402，失败时回滚点数。
+- AI 接口（`generate`、`rewrite-slide`）拒绝游客（返回 401），点数不足返回 402，失败时回滚点数。
 
 ## LLM 配置
 

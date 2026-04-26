@@ -68,8 +68,8 @@ export function AuthDialog() {
 
   async function handleVerify() {
     setError(null);
-    if (!token.trim() || token.trim().length < 6) {
-      setError("请输入 6 位验证码");
+    if (!token.trim() || token.trim().length < 8) {
+      setError("请输入 8 位验证码");
       return;
     }
     setLoading(true);
@@ -121,8 +121,8 @@ export function AuthDialog() {
                   id="auth-otp"
                   type="text"
                   inputMode="numeric"
-                  maxLength={6}
-                  placeholder="123456"
+                  maxLength={8}
+                  placeholder="12345678"
                   value={token}
                   onChange={(e) => setToken(e.target.value.replace(/\D/g, ""))}
                   onKeyDown={(e) => {

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0;padding:0;background:#f6f8fa;font-family:'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+          <!-- 头部 -->
+          <tr>
+            <td align="center" style="padding:40px 40px 0;">
+              <div style="font-size:28px;letter-spacing:2px;color:#1a1a1a;font-weight:700;">
+                图文卡片生成器
+              </div>
+              <div style="margin-top:6px;font-size:13px;color:#6e6e6e;">
+                制作小红书风格图文卡片，导出高清 PNG
+              </div>
+            </td>
+          </tr>
+          <!-- 分割线 -->
+          <tr>
+            <td style="padding:0 40px;">
+              <div style="height:1px;background:#e8e8e8;margin:28px 0;"></div>
+            </td>
+          </tr>
+          <!-- 正文 -->
+          <tr>
+            <td style="padding:0 40px;">
+              <div style="font-size:15px;color:#2e2e2e;line-height:1.7;">
+                您好，
+              </div>
+              <div style="margin-top:12px;font-size:15px;color:#2e2e2e;line-height:1.7;">
+                您的登录验证码为：
+              </div>
+              <!-- 验证码 -->
+              <div style="margin:24px 0;text-align:center;">
+                <span style="display:inline-block;padding:16px 40px;font-size:36px;font-weight:700;letter-spacing:8px;
+                             color:#0f172a;background:#f1f5f9;border-radius:12px;
+                             font-family:'Courier New',monospace;">
+                  {{ .Token }}
+                </span>
+              </div>
+              <div style="font-size:13px;color:#64748b;line-height:1.6;">
+                验证码有效期为 5 分钟。如非本人操作，请忽略此邮件。
+              </div>
+            </td>
+          </tr>
+          <!-- 尾部 -->
+          <tr>
+            <td style="padding:32px 40px 36px;">
+              <div style="height:1px;background:#e8e8e8;margin-bottom:20px;"></div>
+              <div style="font-size:12px;color:#94a3b8;text-align:center;line-height:1.6;">
+                此邮件由系统自动发送，请勿回复。
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
