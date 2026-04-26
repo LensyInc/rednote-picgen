@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const tasks = items.map((meta) => ({
       id: meta.task_id,
       topic: meta.topic,
-      date: new Date(meta.created_at).toISOString(),
+      date: new Date(meta.updated_at).toISOString(),
       pageCount: meta.page_count,
     }));
 

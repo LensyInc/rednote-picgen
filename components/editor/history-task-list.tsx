@@ -224,7 +224,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{task.topic || "未命名项目"}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      修改于 {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 </button>
