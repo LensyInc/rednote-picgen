@@ -98,6 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 登出后生成新的 guestId，保持游客可用
     const newGuestId = ensureGuestId();
     setGuestId(newGuestId);
+    // 刷新页面以重置编辑器状态
+    window.location.reload();
   }, []);
 
   const handleSendOtp = useCallback(async (email: string) => {
