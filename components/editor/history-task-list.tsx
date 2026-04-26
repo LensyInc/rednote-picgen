@@ -3,7 +3,7 @@
 import React from "react";
 import { NoteDocument } from "@/core/schema/note.schema";
 import { Button } from "@/components/ui/button";
-import { History, FolderOpen, Clock } from "lucide-react";
+import { History, FolderOpen, Clock, Trash2 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/fetch-with-auth";
 import {
   Dialog,
@@ -145,6 +145,24 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
     }
   }
 
+  async function handleDelete(taskId: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    try {
+      const res = await fetchWithAuth(`/api/tasks/${taskId}/delete`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      } else {
+        const result = await safeParseResponse<{ error: string }>(res);
+        setError(result.ok ? result.data.error : "删除失败");
+      }
+    } catch (err) {
+      console.error("Delete task error:", err);
+      setError("删除失败");
+    }
+  }
+
   const filtered = filterTasks(tasks, filter);
 
   return (
@@ -213,21 +231,32 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
           ) : (
             <div className="space-y-2" role="list">
               {filtered.map((task) => (
-                <button
+                <div
                   key={task.id}
-                  onClick={() => handleLoad(task.id)}
-                  disabled={loadingDoc}
-                  className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex w-full items-center gap-2 rounded-lg border p-3 text-left transition-colors hover:bg-muted group"
                   role="listitem"
                 >
-                  <FolderOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{task.topic || "未命名项目"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      修改于 {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </div>
-                </button>
+                  <button
+                    onClick={() => handleLoad(task.id)}
+                    disabled={loadingDoc}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FolderOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{task.topic || "未命名项目"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        修改于 {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(task.id, e)}
+                    className="shrink-0 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                    title="删除记录"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               ))}
             </div>
           )}

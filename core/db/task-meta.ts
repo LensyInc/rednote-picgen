@@ -60,6 +60,7 @@ export async function listTaskMeta(options: {
   let query = getSupabase()
     .from("tasks")
     .select("*")
+    .is("deleted_by", null)
     .order("updated_at", { ascending: false })
     .limit(limit + 1);
 
@@ -95,6 +96,30 @@ export async function listTaskMeta(options: {
   const nextCursor = hasMore ? `${items[items.length - 1]!.updated_at}|${items[items.length - 1]!.id}` : undefined;
 
   return { items, nextCursor };
+}
+
+/**
+ * 软删除任务：不删除数据，仅在 tasks 表中设置 deleted_by 字段
+ * 被删除的任务在 listTaskMeta 中会被过滤掉
+ */
+export async function softDeleteTaskMeta(
+  taskId: string,
+  identity: { userId: string | null; guestId: string | null }
+): Promise<void> {
+  const deletedBy = identity.userId || identity.guestId;
+  if (!deletedBy) {
+    throw new Error("无法确定删除者身份");
+  }
+
+  const { error } = await getSupabase()
+    .from("tasks")
+    .update({ deleted_by: deletedBy })
+    .eq("task_id", taskId);
+
+  if (error) {
+    console.error("[task-meta] soft delete error:", error);
+    throw new Error("删除任务失败");
+  }
 }
 
 /**
