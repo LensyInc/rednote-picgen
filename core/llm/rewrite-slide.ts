@@ -11,6 +11,13 @@ function sanitizeSlideForPrompt(slide: Slide): string {
     subtitle: slide.subtitle ? sanitizeUserInput(slide.subtitle, 200) : null,
     highlight: slide.highlight ? sanitizeUserInput(slide.highlight, 200) : null,
     bullets: slide.bullets.map((b) => sanitizeUserInput(b, 200)),
+    use_real_image: slide.use_real_image,
+    image_query: slide.image_query,
+    imagePosition: slide.imagePosition,
+    textAlign: slide.textAlign,
+    comparisonStyle: slide.comparisonStyle,
+    labelLeft: slide.labelLeft,
+    labelRight: slide.labelRight,
   };
   return JSON.stringify(safe, null, 2);
 }
@@ -35,7 +42,25 @@ export async function rewriteSlide(
   );
 
   const parsed = parseLLMJson(response);
-  const validated = slideSchema.safeParse(parsed);
+
+  // 以原 slide 为 base 合并 LLM 输出：LLM 只负责重写文案，
+  // 所有结构字段（id/image/类型等）强制保留原值，防止缺失必填字段导致校验失败。
+  const merged = {
+    ...slide,
+    ...(typeof parsed === "object" && parsed !== null ? (parsed as Record<string, unknown>) : {}),
+    id: slide.id,
+    type: slide.type,
+    image: slide.image,
+    use_real_image: slide.use_real_image,
+    image_query: slide.image_query,
+    imagePosition: slide.imagePosition,
+    textAlign: slide.textAlign,
+    comparisonStyle: slide.comparisonStyle,
+    labelLeft: slide.labelLeft,
+    labelRight: slide.labelRight,
+  };
+
+  const validated = slideSchema.safeParse(merged);
   if (!validated.success) {
     console.error("[rewrite-slide] LLM output validation failed:", validated.error.format());
     throw new Error("LLM 输出格式异常");
