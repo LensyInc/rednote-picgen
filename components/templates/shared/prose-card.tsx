@@ -12,7 +12,7 @@ export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
 
   const imgBlock = hasImage ? (
     <div
-      className="relative w-full shrink-0 overflow-hidden px-16 pt-16"
+      className="relative w-full shrink-0 overflow-hidden p-16"
       style={{ height: CARD_HEIGHT * 0.4 }}
     >
       <div

@@ -12,7 +12,7 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
 
   const imgBlock = src ? (
     <div
-      className="w-full shrink-0 overflow-hidden px-16"
+      className="w-full shrink-0 overflow-hidden p-16"
       style={{
         height: CARD_HEIGHT * 0.25,
         borderRadius: radius(theme, "lg"),

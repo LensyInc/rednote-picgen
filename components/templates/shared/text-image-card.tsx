@@ -12,7 +12,7 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
 
   const imgBlock = src ? (
     <div
-      className="relative w-full shrink-0 overflow-hidden px-16 pt-16"
+      className="relative w-full shrink-0 overflow-hidden p-16"
       style={{ height: CARD_HEIGHT * 0.47 }}
     >
       <div
@@ -28,7 +28,7 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
     </div>
   ) : (
     <div
-      className="relative w-full shrink-0 overflow-hidden px-16 pt-16"
+      className="relative w-full shrink-0 overflow-hidden p-16"
       style={{ height: CARD_HEIGHT * 0.47 }}
     >
       <div
