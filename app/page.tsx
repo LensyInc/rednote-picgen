@@ -381,7 +381,7 @@ export default function HomePage() {
 
   if (restoring) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="flex h-full w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -389,7 +389,7 @@ export default function HomePage() {
 
   if (!hasStarted) {
     return (
-      <div className="relative flex h-screen w-full flex-col items-center justify-center gap-8 bg-background">
+      <div className="relative flex h-full w-full flex-col items-center justify-center gap-8 bg-background">
         <div className="absolute right-4 top-4 flex items-center gap-2">
           <HistoryTaskList onLoad={handleLoadDocument} />
           <UserMenu />
@@ -441,7 +441,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-3">
         <div className="flex items-center gap-4 min-w-0">
           <h1 className="text-lg font-black shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
