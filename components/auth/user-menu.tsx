@@ -7,7 +7,7 @@ import {
   Popover,
   PopoverItem,
 } from "@/components/ui/popover";
-import { LogOut, User, Zap, Crown, Sparkles } from "lucide-react";
+import { LogOut, User, Zap, Crown, Sparkles, Pencil, Check } from "lucide-react";
 import { UpgradeDialog } from "./upgrade-dialog";
 
 interface CreditInfo {
@@ -17,9 +17,12 @@ interface CreditInfo {
 }
 
 export function UserMenu() {
-  const { user, isLoggedIn, isLoading, login, logout } = useAuth();
+  const { user, isLoggedIn, isLoading, login, logout, updateDisplayName } = useAuth();
   const [credits, setCredits] = React.useState<CreditInfo | null>(null);
   const [showUpgrade, setShowUpgrade] = React.useState(false);
+  const [editingName, setEditingName] = React.useState(false);
+  const [nameDraft, setNameDraft] = React.useState("");
+  const [savingName, setSavingName] = React.useState(false);
 
   React.useEffect(() => {
     if (!isLoggedIn) {
@@ -66,30 +69,83 @@ export function UserMenu() {
     );
   }
 
-  const displayEmail = user?.email?.split("@")[0] ?? "用户";
+  const displayName = user?.displayName || user?.email?.split("@")[0] || "用户";
   const isPro = credits?.plan_type === "pro";
+
+  async function handleSaveName() {
+    const trimmed = nameDraft.trim();
+    if (!trimmed || trimmed === user?.displayName) {
+      setEditingName(false);
+      return;
+    }
+    setSavingName(true);
+    await updateDisplayName(trimmed);
+    setSavingName(false);
+    setEditingName(false);
+  }
 
   return (
     <>
       <Popover
+        align="end"
         trigger={
           <button className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors">
             <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary shrink-0">
-              {displayEmail.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </span>
             <span className="max-w-[80px] truncate hidden sm:inline">
-              {displayEmail}
+              {displayName}
             </span>
             {isPro && (
               <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />
             )}
           </button>
         }
-        contentClassName="w-[220px]"
+        contentClassName="w-[240px]"
       >
         <div className="px-3 py-2 border-b">
-          <p className="text-sm font-medium truncate">{user?.email}</p>
+          <div className="flex items-center justify-between gap-2">
+            {editingName ? (
+              <div className="flex items-center gap-1 flex-1">
+                <input
+                  autoFocus
+                  className="flex-1 rounded border px-2 py-1 text-sm outline-none focus:border-primary"
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") setEditingName(false);
+                  }}
+                />
+                <button
+                  className="shrink-0 rounded p-1 text-primary hover:bg-primary/10"
+                  onClick={handleSaveName}
+                  disabled={savingName}
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm font-medium truncate">
+                  {user?.displayName || user?.email?.split("@")[0]}
+                </p>
+                <button
+                  className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted"
+                  onClick={() => {
+                    setNameDraft(user?.displayName || "");
+                    setEditingName(true);
+                  }}
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+              </>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground mt-0.5">
+            {user?.email}
+          </p>
+          <p className="text-xs text-muted-foreground">
             {isPro ? "Pro 会员" : "免费用户"}
           </p>
         </div>

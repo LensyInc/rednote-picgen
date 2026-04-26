@@ -9,6 +9,7 @@ import {
   signOut,
   getCurrentUser,
   mergeGuestTasks,
+  updateUserDisplayName,
   ensureGuestId,
   clearGuestId,
   getGuestId,
@@ -17,6 +18,7 @@ import {
 export interface AuthUser {
   id: string;
   email: string;
+  displayName?: string;
 }
 
 interface AuthContextValue {
@@ -27,6 +29,7 @@ interface AuthContextValue {
   login: () => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateDisplayName: (name: string) => Promise<{ error: Error | null }>;
   showLoginDialog: boolean;
   setShowLoginDialog: (v: boolean) => void;
   sendOtp: (email: string) => Promise<{ error: Error | null }>;
@@ -63,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser({
             id: session.user.id,
             email: session.user.email ?? "",
+            displayName: session.user.user_metadata?.display_name as string | undefined,
           });
           // 登录成功后合并游客数据
           const currentGuestId = getGuestId();
@@ -100,6 +104,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await sendOtp(email);
   }, []);
 
+  const handleUpdateDisplayName = useCallback(async (name: string) => {
+    const { error } = await updateUserDisplayName(name);
+    if (!error) {
+      await fetchUser();
+    }
+    return { error };
+  }, [fetchUser]);
+
   const handleVerifyOtp = useCallback(async (email: string, token: string) => {
     const { error } = await verifyOtp(email, token);
     if (!error) {
@@ -117,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login: () => setShowLoginDialog(true),
     logout,
     refreshUser: fetchUser,
+    updateDisplayName: handleUpdateDisplayName,
     showLoginDialog,
     setShowLoginDialog,
     sendOtp: handleSendOtp,

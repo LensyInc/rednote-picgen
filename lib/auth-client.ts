@@ -45,7 +45,17 @@ export async function getCurrentUser() {
   return {
     id: data.user.id,
     email: data.user.email ?? "",
+    displayName: data.user.user_metadata?.display_name as string | undefined,
   };
+}
+
+// 更新用户显示名称
+export async function updateUserDisplayName(displayName: string) {
+  const supabase = getBrowserClient();
+  const { error } = await supabase.auth.updateUser({
+    data: { display_name: displayName },
+  });
+  return { error };
 }
 
 // 合并游客数据
