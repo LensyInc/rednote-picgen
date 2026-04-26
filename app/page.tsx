@@ -389,9 +389,9 @@ export default function HomePage() {
         </div>
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-wenkai)" }}>
-            图文卡片生成器
+            PicGen
           </h1>
-          <p className="text-sm text-muted-foreground">制作小红书风格图文卡片，导出高清 PNG</p>
+          <p className="text-sm text-muted-foreground">小红书文字图片生成器</p>
         </div>
         <div className="flex gap-4">
           <button
@@ -438,7 +438,7 @@ export default function HomePage() {
       <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-2.5">
         <div className="flex items-center gap-3 min-w-0">
           <h1 className="text-base font-bold shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
-            图文卡片生成器
+            PicGen
           </h1>
           {document.meta.topic && (
             <span className="text-xs text-muted-foreground truncate">

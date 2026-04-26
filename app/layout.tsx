@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "小红书图文卡片生成器",
-  description: "本地版小红书风格图文卡片生成工具",
+  title: "PicGen - 小红书文字图片生成器",
+  description: "小红书风格图文卡片生成工具",
 };
 
 export default function RootLayout({
