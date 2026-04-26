@@ -152,7 +152,7 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
       )}
 
       <div className="space-y-3">
-        <CardEditor slide={editing} onChange={setEditing} />
+        <CardEditor slide={editing} onChange={setEditing} taskId={taskId} />
       </div>
 
       <div className="sticky bottom-0 -mx-4 -mb-4 border-t bg-card px-4 py-3 flex gap-2">

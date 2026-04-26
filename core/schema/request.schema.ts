@@ -41,7 +41,7 @@ export const slideTypeEnum = z.enum([
 export const backgroundTypeEnum = z.enum(["solid", "gradient", "dots", "lines"]);
 export type BackgroundType = z.infer<typeof backgroundTypeEnum>;
 
-export const sourceEnum = z.enum(["pexels", "pixabay"]);
+export const sourceEnum = z.enum(["pexels", "pixabay", "upload"]);
 
 export const generateRequestSchema = z.object({
   projectName: z.string().min(1, "项目名称不能为空").max(200),

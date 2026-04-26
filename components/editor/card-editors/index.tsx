@@ -5,6 +5,8 @@ import { Slide } from "@/core/schema/note.schema";
 import { StockSearchResult } from "@/core/schema/stock.schema";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { ImageCandidatePicker } from "../image-candidate-picker";
 import {
   TitleField,
@@ -18,16 +20,23 @@ import {
   StatsPairsEditor,
   ComparisonColumnsEditor,
 } from "./structured-editors";
+import { fetchWithAuth } from "@/lib/fetch-with-auth";
 
 interface CardEditorProps {
   slide: Slide;
   onChange: (next: Slide) => void;
+  taskId?: string;
 }
 
-function ImageSection({ slide, onChange }: CardEditorProps) {
+function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
   const switchId = React.useId();
   const pos = slide.imagePosition || "top";
+  const [uploading, setUploading] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
   function onSelect(image: StockSearchResult | null) {
+    setUploadError(null);
     if (image) {
       onChange({
         ...slide,
@@ -45,16 +54,56 @@ function ImageSection({ slide, onChange }: CardEditorProps) {
     }
   }
 
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !taskId) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const form = new FormData();
+      form.append("taskId", taskId);
+      form.append("file", file);
+      const res = await fetchWithAuth("/api/upload-image", {
+        method: "POST",
+        body: form,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        onChange({
+          ...slide,
+          use_real_image: true,
+          image: {
+            source: "upload",
+            previewUrl: "",
+            fullUrl: "",
+            localPath: data.url,
+          },
+        });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setUploadError(err.error || "上传失败，请重试");
+      }
+    } catch (e) {
+      setUploadError("上传失败，请重试");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
   const currentImage = slide.image
     ? {
         source: slide.image.source,
-        id: slide.image.previewUrl,
-        previewUrl: slide.image.previewUrl,
-        fullUrl: slide.image.fullUrl,
+        id: slide.image.previewUrl || slide.image.localPath || "",
+        previewUrl: slide.image.previewUrl || slide.image.localPath || "",
+        fullUrl: slide.image.fullUrl || slide.image.localPath || "",
         pageUrl: slide.image.pageUrl,
         author: slide.image.author,
       }
     : null;
+
+  const hasUpload = slide.image?.source === "upload";
+  const uploadPreview = hasUpload ? slide.image?.localPath : undefined;
 
   return (
     <div className="space-y-2 rounded-md border bg-muted/20 p-3">
@@ -91,12 +140,65 @@ function ImageSection({ slide, onChange }: CardEditorProps) {
               ))}
             </div>
           </div>
-          <ImageCandidatePicker
-            key={slide.image_query || "none"}
-            query={slide.image_query}
-            currentImage={currentImage}
-            onSelect={onSelect}
-          />
+          <div className="space-y-1.5">
+            <Label className="text-xs">上传图片</Label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleUpload}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full h-7 text-xs"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : hasUpload ? (
+                "更换图片"
+              ) : (
+                "选择本地图片"
+              )}
+            </Button>
+            {uploadError && (
+              <p className="text-[11px] text-red-600">{uploadError}</p>
+            )}
+            {uploadPreview && (
+              <div className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={uploadPreview}
+                  alt="upload preview"
+                  className="h-14 w-14 rounded-md object-cover border"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-[11px] text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() =>
+                    onChange({ ...slide, use_real_image: false, image: null })
+                  }
+                >
+                  移除
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className="border-t pt-2">
+            <Label className="text-xs text-muted-foreground mb-1.5 block">
+              或从素材库搜索
+            </Label>
+            <ImageCandidatePicker
+              key={slide.image_query || "none"}
+              query={slide.image_query}
+              currentImage={currentImage}
+              onSelect={onSelect}
+            />
+          </div>
         </>
       )}
     </div>
