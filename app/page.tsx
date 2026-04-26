@@ -311,7 +311,7 @@ export default function HomePage() {
   }
 
   function handleAddSlide(type: Slide["type"]) {
-    if (document.slides.length >= 12) return;
+    if (document.slides.length >= 64) return;
     const newSlide = createEmptySlide(type, newSlideId());
     const newSlides = [...document.slides, newSlide];
     setDocument({
@@ -354,7 +354,7 @@ export default function HomePage() {
   }
 
   function handleDuplicateSlide(index: number) {
-    if (document.slides.length >= 12) return;
+    if (document.slides.length >= 64) return;
     const source = document.slides[index];
     const copy: Slide = {
       ...source,
