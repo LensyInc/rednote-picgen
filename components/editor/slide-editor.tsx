@@ -31,12 +31,21 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
   const [rewriteError, setRewriteError] = React.useState<string | null>(null);
   const abortRef = React.useRef<AbortController | null>(null);
   const rewriteTextareaId = React.useId();
+  const rewritePanelRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     return () => {
       abortRef.current?.abort();
     };
   }, []);
+
+  React.useEffect(() => {
+    if (showRewrite && rewritePanelRef.current) {
+      requestAnimationFrame(() => {
+        rewritePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    }
+  }, [showRewrite]);
 
   const overflow = React.useMemo(() => checkSlideOverflow(editing), [editing]);
   const dirty = React.useMemo(() => {
@@ -156,7 +165,7 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
       </div>
 
       {showRewrite && (
-        <div className="space-y-2 rounded-md border bg-muted/20 p-2">
+        <div ref={rewritePanelRef} className="space-y-2 rounded-md border bg-muted/20 p-2">
           <Label htmlFor={rewriteTextareaId} className="text-xs">重写指令（可选）</Label>
           <Textarea
             id={rewriteTextareaId}
