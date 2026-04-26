@@ -23,10 +23,39 @@ interface TaskItem {
   date: string;
 }
 
+type FilterKey = "all" | "today" | "3days" | "7days" | "older";
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: "all", label: "全部" },
+  { key: "today", label: "当天" },
+  { key: "3days", label: "3天内" },
+  { key: "7days", label: "7天内" },
+  { key: "older", label: "7天前" },
+];
+
+function getDayStart(date: Date): number {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+function filterTasks(tasks: TaskItem[], filter: FilterKey): TaskItem[] {
+  const now = getDayStart(new Date());
+  const oneDay = 86_400_000;
+  return tasks.filter((t) => {
+    const taskTime = getDayStart(new Date(t.date));
+    const diff = now - taskTime;
+    switch (filter) {
+      case "today":   return diff < oneDay;
+      case "3days":   return diff < 3 * oneDay;
+      case "7days":   return diff < 7 * oneDay;
+      case "older":   return diff >= 7 * oneDay;
+      default:        return true;
+    }
+  });
+}
+
 async function safeParseResponse<T>(res: Response): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    // 尝试提取 JSON 错误，fallback 到状态码
     try {
       const json = JSON.parse(text);
       return { ok: false, error: json.error || `请求失败 (${res.status})` };
@@ -48,6 +77,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
   const [loading, setLoading] = React.useState(false);
   const [loadingDoc, setLoadingDoc] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [filter, setFilter] = React.useState<FilterKey>("all");
   const abortRef = React.useRef<AbortController | null>(null);
   const loadAbortRef = React.useRef<AbortController | null>(null);
 
@@ -82,8 +112,10 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
   function handleOpenChange(next: boolean) {
     if (loadingDoc) return;
     setOpen(next);
-    if (next) loadHistory();
-    else {
+    if (next) {
+      setFilter("all");
+      loadHistory();
+    } else {
       abortRef.current?.abort();
       setError(null);
     }
@@ -113,6 +145,8 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
     }
   }
 
+  const filtered = filterTasks(tasks, filter);
+
   return (
     <>
     {loadingDoc && (
@@ -130,49 +164,74 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
           历史任务
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[70vh] overflow-y-auto" aria-describedby="history-desc">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" aria-hidden="true" />
-            历史任务
-          </DialogTitle>
-        </DialogHeader>
-        <p id="history-desc" className="sr-only">
-          选择历史任务以加载到编辑器
-        </p>
+      <DialogContent className="flex max-w-lg flex-col p-0" aria-describedby="history-desc">
+        {/* 固定头部：标题 + 筛选标签 */}
+        <div className="shrink-0 border-b px-6 pt-5 pb-0">
+          <DialogHeader className="px-0 pt-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" aria-hidden="true" />
+              历史任务
+            </DialogTitle>
+          </DialogHeader>
+          <p id="history-desc" className="sr-only">
+            选择历史任务以加载到编辑器
+          </p>
 
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-            {error}
-          </div>
-        )}
-        {loading ? (
-          <div className="py-8 text-center text-muted-foreground">加载中...</div>
-        ) : tasks.length === 0 ? (
-          <div className="py-8 text-center text-muted-foreground">
-            暂无历史任务
-          </div>
-        ) : (
-          <div className="space-y-2" role="list">
-            {tasks.map((task) => (
+          <div className="flex gap-1 mt-3" role="tablist">
+            {FILTERS.map((f) => (
               <button
-                key={task.id}
-                onClick={() => handleLoad(task.id)}
-                disabled={loadingDoc}
-                className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-                role="listitem"
+                key={f.key}
+                role="tab"
+                aria-selected={filter === f.key}
+                onClick={() => setFilter(f.key)}
+                className={`rounded-t px-3 py-1.5 text-xs font-medium transition-colors ${
+                  filter === f.key
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
-                <FolderOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{task.topic || "未命名项目"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </div>
+                {f.label}
               </button>
             ))}
           </div>
-        )}
+
+          {error && (
+            <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* 可滚动列表 */}
+        <div className="overflow-y-auto px-6 py-4 max-h-[55vh]">
+          {loading ? (
+            <div className="py-8 text-center text-muted-foreground">加载中...</div>
+          ) : filtered.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
+              暂无历史任务
+            </div>
+          ) : (
+            <div className="space-y-2" role="list">
+              {filtered.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={() => handleLoad(task.id)}
+                  disabled={loadingDoc}
+                  className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                  role="listitem"
+                >
+                  <FolderOpen className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{task.topic || "未命名项目"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(task.date).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
     </>
