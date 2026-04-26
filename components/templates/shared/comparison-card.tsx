@@ -13,7 +13,7 @@ interface SideStyle {
   dotColor: string;
 }
 
-export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const mid = Math.ceil(slide.bullets.length / 2);
   const left = slide.bullets.slice(0, mid);
   const right = slide.bullets.slice(mid);
@@ -108,6 +108,7 @@ if (isAB) {
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col gap-10 px-16 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col items-start gap-5">

@@ -5,7 +5,7 @@ import { Tag, Highlight } from "./atoms";
 import { proxyImageUrl } from "@/lib/proxy-image";
 import { CARD_HEIGHT } from "@/core/render/card-dimensions";
 
-export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const src = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
   return (
     <CardContainer
@@ -13,6 +13,7 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">

@@ -3,7 +3,7 @@ import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { proxyImageUrl } from "@/lib/proxy-image";
 
-export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
   const hasImage = !!imgSrc;
   return (
@@ -12,6 +12,7 @@ export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal }
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       {hasImage && (
         <div

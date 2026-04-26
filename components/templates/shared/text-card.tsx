@@ -3,13 +3,14 @@ import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { SectionTitle, NumberBadge, Highlight } from "./atoms";
 
-export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   return (
     <CardContainer
       theme={theme}
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex items-start gap-6">

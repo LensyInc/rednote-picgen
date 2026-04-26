@@ -3,13 +3,14 @@ import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { Tag, Highlight } from "./atoms";
 
-export function ChecklistCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function ChecklistCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   return (
     <CardContainer
       theme={theme}
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">

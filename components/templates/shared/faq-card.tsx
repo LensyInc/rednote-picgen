@@ -16,7 +16,7 @@ function splitQA(text: string): { q: string; a: string } {
   return { q: text, a: "" };
 }
 
-export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const items = slide.bullets.map(splitQA);
 
   return (
@@ -25,6 +25,7 @@ export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">

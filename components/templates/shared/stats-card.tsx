@@ -11,7 +11,7 @@ function parseStat(text: string): { value: string; label: string } {
   return { value: "", label: text };
 }
 
-export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const items = slide.bullets.map(parseStat);
   const showValues = items.some((i) => i.value);
 
@@ -21,6 +21,7 @@ export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal }
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">

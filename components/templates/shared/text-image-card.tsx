@@ -5,7 +5,7 @@ import { Highlight } from "./atoms";
 import { proxyImageUrl } from "@/lib/proxy-image";
 import { CARD_HEIGHT } from "@/core/render/card-dimensions";
 
-export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const src = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
   return (
     <CardContainer
@@ -13,6 +13,7 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col">
         <div className="relative w-full shrink-0 overflow-hidden px-16 pt-16"

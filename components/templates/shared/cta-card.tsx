@@ -2,13 +2,14 @@ import type React from "react";
 import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 
-export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
+export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   return (
     <CardContainer
       theme={theme}
       backgroundType={backgroundType}
       pageIndex={pageIndex}
       pageTotal={pageTotal}
+      fontScale={fontScale}
     >
       <div className="flex h-full flex-col justify-center px-20 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <span
