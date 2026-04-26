@@ -30,6 +30,7 @@ import {
   Loader2,
   Download,
   Type,
+  Pencil,
 } from "lucide-react";
 import { CARD_TYPES, createEmptySlide } from "@/components/editor/card-type-meta";
 import { THEMES, type BackgroundType, FONT_SCALE_MAP, type FontScale } from "@/components/templates/shared/theme";
@@ -192,6 +193,8 @@ export default function HomePage() {
 
   // 刷新后自动恢复上次编辑的文档
   const [restoring, setRestoring] = React.useState(true);
+  const [showRename, setShowRename] = React.useState(false);
+  const [renameValue, setRenameValue] = React.useState("");
   React.useEffect(() => {
     const savedTaskId = localStorage.getItem("picgen_editing_task");
     if (!savedTaskId) {
@@ -273,6 +276,10 @@ export default function HomePage() {
     const newSlides = [...document.slides];
     newSlides[selectedIndex] = updated;
     setDocument({ ...document, slides: newSlides });
+  }
+
+  function handleTopicChange(topic: string) {
+    setDocument({ ...document, meta: { ...document.meta, topic } });
   }
 
   function handleLoadDocument(doc: NoteDocument) {
@@ -435,16 +442,25 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-2.5">
-        <div className="flex items-center gap-3 min-w-0">
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-3">
+        <div className="flex items-center gap-4 min-w-0">
           <h1 className="text-base font-bold shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
             PicGen
           </h1>
-          {document.meta.topic && (
-            <span className="text-xs text-muted-foreground truncate">
-              {document.meta.topic} · 共 {document.slides.length} 页
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => { setRenameValue(document.meta.topic); setShowRename(true); }}
+              className="group flex items-center gap-1.5 min-w-0 rounded-md px-2 py-1 hover:bg-muted/50 transition-colors"
+            >
+              <span className="truncate text-lg font-semibold text-foreground">
+                {document.meta.topic || "未命名项目"}
+              </span>
+              <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            <span className="text-sm text-muted-foreground tabular-nums shrink-0">
+              {document.slides.length} 页
             </span>
-          )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <HistoryTaskList onLoad={handleLoadDocument} />
@@ -751,6 +767,42 @@ export default function HomePage() {
         onOpenChange={setShowManualDialog}
         onStart={handleManualStart}
       />
+
+      {/* 重命名对话框 */}
+      <Dialog open={showRename} onOpenChange={setShowRename}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>重命名项目</DialogTitle>
+          </DialogHeader>
+          <input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleTopicChange(renameValue);
+                setShowRename(false);
+              }
+            }}
+            placeholder="输入项目名称"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none ring-0 focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowRename(false)}
+              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted transition-colors"
+            >
+              取消
+            </button>
+            <button
+              onClick={() => { handleTopicChange(renameValue); setShowRename(false); }}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              确认
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 导出容器：仅在导出期间渲染当前目标 slide */}
       {exportTargetIndex !== null && (
