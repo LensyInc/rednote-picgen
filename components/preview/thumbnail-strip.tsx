@@ -49,6 +49,8 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
 }) {
   const [confirmDelete, setConfirmDelete] = React.useState<number | null>(null);
   const scale = 0.12;
+  const thumbW = CARD_WIDTH * scale;
+  const thumbH = CARD_HEIGHT * scale;
   const component = mapSlideToComponent(slide, templateId, backgroundType, {
     pageIndex: index + 1,
     pageTotal: total,
@@ -62,13 +64,14 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
         "shrink-0 rounded-md border-2 transition-all overflow-hidden bg-card",
         selected ? "border-primary" : "border-border/40 hover:border-muted-foreground/50"
       )}
+      style={{ width: thumbW }}
     >
       <button
         onClick={() => onSelect(index)}
-        className="relative block w-full overflow-hidden bg-card"
+        className="relative overflow-hidden bg-card"
         style={{
-          width: CARD_WIDTH * scale,
-          height: CARD_HEIGHT * scale,
+          width: thumbW,
+          height: thumbH,
         }}
       >
         <div
