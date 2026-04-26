@@ -55,6 +55,7 @@ function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
   }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    console.log("[upload] handleUpload called", e.target.files);
     const file = e.target.files?.[0];
     if (!file || !taskId) return;
     setUploading(true);
@@ -146,7 +147,7 @@ function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
               ref={fileRef}
               type="file"
               accept="image/*"
-              className="hidden"
+              className="sr-only"
               onChange={handleUpload}
             />
             <Button
