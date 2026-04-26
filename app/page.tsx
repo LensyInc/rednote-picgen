@@ -480,7 +480,7 @@ export default function HomePage() {
               </div>
               {CARD_TYPES.map((t) => (
                 <PopoverItem key={t.type} onClick={() => handleAddSlide(t.type)}>
-                  <span className="text-base leading-none shrink-0">{t.icon}</span>
+                  <t.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium">{t.label}</div>
                     <div className="text-[11px] text-muted-foreground truncate">{t.description}</div>
