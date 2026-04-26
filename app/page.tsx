@@ -183,6 +183,38 @@ export default function HomePage() {
     };
   }, [document, hasStarted]);
 
+  // 刷新后自动恢复上次编辑的文档
+  const [restoring, setRestoring] = React.useState(true);
+  React.useEffect(() => {
+    const savedTaskId = localStorage.getItem("picgen_editing_task");
+    if (!savedTaskId) {
+      setRestoring(false);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await fetchWithAuth(`/api/tasks/${savedTaskId}`);
+        if (res.ok) {
+          const doc: NoteDocument = await res.json();
+          lastSavedRef.current = JSON.stringify(doc);
+          setDocument(doc);
+          setHasStarted(true);
+        }
+      } catch {
+        // ignore
+      } finally {
+        setRestoring(false);
+      }
+    })();
+  }, []);
+
+  // 进入编辑状态后保存 taskId 到 localStorage
+  React.useEffect(() => {
+    if (hasStarted) {
+      localStorage.setItem("picgen_editing_task", document.taskId);
+    }
+  }, [hasStarted, document.taskId]);
+
   async function handleGenerate(data: GenerateRequest) {
     setIsGenerating(true);
     setGenerateError(null);
@@ -324,6 +356,14 @@ export default function HomePage() {
       meta: { ...document.meta, pageCount: newSlides.length },
     });
     setSelectedIndex(index + 1);
+  }
+
+  if (restoring) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   if (!hasStarted) {
@@ -563,6 +603,20 @@ export default function HomePage() {
           </div>
         </aside>
       </div>
+
+      {/* AI 生成遮罩 */}
+      {isGenerating && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-xl bg-card p-8 shadow-xl max-w-sm text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-base font-semibold">AI 正在生成内容…</p>
+            <p className="text-sm text-muted-foreground">
+              生成多页图文内容可能需要 30 秒到数分钟，<br />
+              请耐心等待，不要关闭此页面。
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 导出遮罩 */}
       {exporting && (

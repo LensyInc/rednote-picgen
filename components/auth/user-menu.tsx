@@ -33,28 +33,26 @@ export function UserMenu() {
   const [nameDraft, setNameDraft] = React.useState("");
   const [savingName, setSavingName] = React.useState(false);
 
+  const fetchCredits = React.useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      const res = await fetch("/api/user/credits");
+      if (res.ok) {
+        const data = await res.json();
+        setCredits(data);
+      }
+    } catch {
+      // ignore
+    }
+  }, [isLoggedIn]);
+
   React.useEffect(() => {
     if (!isLoggedIn) {
       setCredits(null); // eslint-disable-line react-hooks/set-state-in-effect -- must clear on logout
       return;
     }
-    let cancelled = false;
-    async function fetchCredits() {
-      try {
-        const res = await fetch("/api/user/credits");
-        if (res.ok) {
-          const data = await res.json();
-          if (!cancelled) setCredits(data);
-        }
-      } catch {
-        // ignore
-      }
-    }
     fetchCredits();
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchCredits]);
 
   if (isLoading) {
     return (
@@ -86,7 +84,7 @@ export function UserMenu() {
       <Popover
         align="end"
         trigger={
-          <button className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors">
+          <button className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors" onClick={fetchCredits}>
             <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary shrink-0">
               {displayName.charAt(0).toUpperCase()}
             </span>
