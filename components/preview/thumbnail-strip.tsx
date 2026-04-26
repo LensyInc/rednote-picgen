@@ -180,7 +180,7 @@ export function ThumbnailStrip({
   const handleSelect = React.useCallback((index: number) => onSelect(index), [onSelect]);
 
   return (
-    <div className="flex flex-col gap-2 p-3">
+    <div className="flex flex-col items-center gap-2 p-3">
       <div className="sticky top-0 -mx-3 -mt-3 mb-0 flex items-baseline justify-between border-b bg-card px-3 py-2 z-10">
         <h3 className="text-xs font-semibold text-muted-foreground">页面列表</h3>
         <span className="text-[10px] text-muted-foreground tabular-nums">
