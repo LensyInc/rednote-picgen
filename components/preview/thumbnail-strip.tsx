@@ -8,7 +8,7 @@ import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Copy, Trash2 } from "lucide-react";
 import { CARD_TYPE_META } from "@/components/editor/card-type-meta";
-import type { BackgroundType } from "@/components/templates/shared/theme";
+import type { BackgroundType, FontScale } from "@/components/templates/shared/theme";
 
 interface ThumbnailStripProps {
   slides: Slide[];
@@ -16,6 +16,7 @@ interface ThumbnailStripProps {
   onSelect: (index: number) => void;
   templateId?: string;
   backgroundType?: BackgroundType;
+  fontScale?: FontScale;
   onMove?: (from: number, to: number) => void;
   onDelete?: (index: number) => void;
   onDuplicate?: (index: number) => void;
@@ -29,6 +30,7 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
   onSelect,
   templateId,
   backgroundType,
+  fontScale,
   onMove,
   onDelete,
   onDuplicate,
@@ -40,6 +42,7 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
   onSelect: (index: number) => void;
   templateId: string;
   backgroundType: BackgroundType;
+  fontScale?: FontScale;
   onMove?: (from: number, to: number) => void;
   onDelete?: (index: number) => void;
   onDuplicate?: (index: number) => void;
@@ -49,6 +52,7 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
   const component = mapSlideToComponent(slide, templateId, backgroundType, {
     pageIndex: index + 1,
     pageTotal: total,
+    fontScale,
   });
   const typeLabel = CARD_TYPE_META[slide.type]?.label || slide.type;
 
@@ -165,6 +169,7 @@ export function ThumbnailStrip({
   onSelect,
   templateId = "template-a",
   backgroundType = "solid",
+  fontScale,
   onMove,
   onDelete,
   onDuplicate,
@@ -189,6 +194,7 @@ export function ThumbnailStrip({
           onSelect={handleSelect}
           templateId={templateId}
           backgroundType={backgroundType}
+          fontScale={fontScale}
           onMove={onMove}
           onDelete={onDelete}
           onDuplicate={onDuplicate}

@@ -1,5 +1,5 @@
 import type React from "react";
-import { type CardProps, radius } from "./theme";
+import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { Tag, Highlight } from "./atoms";
 import { proxyImageUrl } from "@/lib/proxy-image";
@@ -14,17 +14,17 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
       pageIndex={pageIndex}
       pageTotal={pageTotal}
     >
-      <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40">
+      <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">
           <Tag theme={theme} variant="soft">操作步骤</Tag>
           <h2
-            className="text-[72px] font-black leading-[1.08]"
-            style={{ color: theme.textStrong }}
+            className="font-black leading-[1.08]"
+            style={{ color: theme.textStrong, fontSize: scaledPx(72) }}
           >
             {slide.title}
           </h2>
           {slide.subtitle && (
-            <p className="text-[34px]" style={{ color: theme.textMuted }}>
+            <p style={{ color: theme.textMuted, fontSize: scaledPx(34) }}>
               {slide.subtitle}
             </p>
           )}
@@ -49,11 +49,12 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
             <li key={i} className="flex items-start gap-6">
               <div className="flex flex-col items-center">
                 <span
-                  className="flex h-20 w-20 items-center justify-center text-[36px] font-semibold"
+                  className="flex h-20 w-20 items-center justify-center font-semibold"
                   style={{
                     backgroundColor: theme.primary,
                     color: theme.primaryText,
                     borderRadius: radius(theme, "pill"),
+                    fontSize: scaledPx(36),
                   }}
                 >
                   {String(i + 1).padStart(2, "0")}
@@ -74,8 +75,8 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
                 }}
               >
                 <span
-                  className="text-[36px] leading-[1.4]"
-                  style={{ color: theme.textBody }}
+                  className="leading-[1.4]"
+                  style={{ color: theme.textBody, fontSize: scaledPx(36) }}
                 >
                   {bullet}
                 </span>

@@ -1,5 +1,5 @@
 import type React from "react";
-import { type CardProps, radius } from "./theme";
+import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { Tag, Highlight } from "./atoms";
 
@@ -22,17 +22,17 @@ export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal }
       pageIndex={pageIndex}
       pageTotal={pageTotal}
     >
-      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40">
+      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">
           <Tag theme={theme} variant="soft">关键数据</Tag>
           <h2
-            className="text-[76px] font-black leading-[1.08]"
-            style={{ color: theme.textStrong }}
+            className="font-black leading-[1.08]"
+            style={{ color: theme.textStrong, fontSize: scaledPx(76) }}
           >
             {slide.title}
           </h2>
           {slide.subtitle && (
-            <p className="text-[34px]" style={{ color: theme.textMuted }}>
+            <p style={{ color: theme.textMuted, fontSize: scaledPx(34) }}>
               {slide.subtitle}
             </p>
           )}
@@ -50,14 +50,14 @@ export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal }
               }}
             >
               <span
-                className="text-[80px] font-black leading-none"
-                style={{ color: theme.primary }}
+                className="font-black leading-none"
+                style={{ color: theme.primary, fontSize: scaledPx(80) }}
               >
                 {showValues && item.value ? item.value : `0${i + 1}`}
               </span>
               <span
-                className="text-[30px] leading-[1.35]"
-                style={{ color: theme.textBody }}
+                className="leading-[1.35]"
+                style={{ color: theme.textBody, fontSize: scaledPx(30) }}
               >
                 {item.label}
               </span>

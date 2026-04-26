@@ -1,4 +1,4 @@
-import { type CardProps, radius, withAlpha } from "./theme";
+import { type CardProps, radius, scaledPx, withAlpha } from "./theme";
 import { CardContainer } from "./card-container";
 import { Tag, Highlight } from "./atoms";
 
@@ -63,8 +63,9 @@ if (isAB) {
       >
         <div className="flex items-center gap-4">
           <span
-            className="flex h-20 w-20 items-center justify-center text-[44px] font-black leading-none"
+            className="flex h-20 w-20 items-center justify-center font-black leading-none"
             style={{
+              fontSize: scaledPx(44),
               backgroundColor: s.badgeColor,
               color: badgeTextColor,
               borderRadius: radius(theme, "pill"),
@@ -73,8 +74,8 @@ if (isAB) {
             {s.badge}
           </span>
           <span
-            className="text-[44px] font-bold"
-            style={{ color: s.labelColor }}
+            className="font-bold"
+            style={{ fontSize: scaledPx(44), color: s.labelColor }}
           >
             {label}
           </span>
@@ -83,8 +84,8 @@ if (isAB) {
           {items.map((b, i) => (
             <li
               key={i}
-              className="flex items-start gap-3 text-[34px] leading-[1.35]"
-              style={{ color: theme.textBody }}
+              className="flex items-start gap-3 leading-[1.35]"
+              style={{ fontSize: scaledPx(34), color: theme.textBody }}
             >
               <span
                 className="mt-3 h-3 w-3 shrink-0"
@@ -108,14 +109,14 @@ if (isAB) {
       pageIndex={pageIndex}
       pageTotal={pageTotal}
     >
-      <div className="flex h-full flex-col gap-10 px-16 pt-24 pb-40">
+      <div className="flex h-full flex-col gap-10 px-16 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col items-start gap-5">
           <Tag theme={theme} variant="soft">
             {isAB ? "对照参考" : "对比参考"}
           </Tag>
           <h2
-            className="text-[72px] font-black leading-[1.08]"
-            style={{ color: theme.textStrong }}
+            className="font-black leading-[1.08]"
+            style={{ fontSize: scaledPx(72), color: theme.textStrong }}
           >
             {slide.title}
           </h2>
@@ -125,8 +126,9 @@ if (isAB) {
           {column(left, "L", leftLabel)}
           <div className="relative flex items-center justify-center">
             <span
-              className="flex h-24 w-24 items-center justify-center text-[40px] font-black"
+              className="flex h-24 w-24 items-center justify-center font-black"
               style={{
+                fontSize: scaledPx(40),
                 backgroundColor: isAB ? theme.surfaceSoft : theme.primary,
                 color: isAB ? theme.textStrong : theme.primaryText,
                 borderRadius: radius(theme, "pill"),

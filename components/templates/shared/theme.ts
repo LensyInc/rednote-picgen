@@ -9,12 +9,20 @@ export type FontFamily = "sans" | "wenkai";
 export type Mood = "light" | "dark";
 export type BackgroundType = z.infer<typeof backgroundTypeEnum>;
 
+export type FontScale = "small" | "medium" | "large";
+export const FONT_SCALE_MAP: Record<FontScale, number> = { small: 0.85, medium: 1, large: 1.15 };
+
+export function scaledPx(base: number): string {
+  return `calc(${base}px * var(--font-scale, 1))`;
+}
+
 export interface CardProps {
   slide: Slide;
   theme: Theme;
   backgroundType?: BackgroundType;
   pageIndex?: number;
   pageTotal?: number;
+  fontScale?: FontScale;
 }
 
 export interface Theme {

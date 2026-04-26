@@ -1,5 +1,5 @@
 import type React from "react";
-import { type CardProps, radius } from "./theme";
+import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { Tag, Highlight } from "./atoms";
 
@@ -26,12 +26,12 @@ export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
       pageIndex={pageIndex}
       pageTotal={pageTotal}
     >
-      <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40">
+      <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex flex-col gap-4">
           <Tag theme={theme} variant="soft">常见问答</Tag>
           <h2
-            className="text-[72px] font-black leading-[1.08]"
-            style={{ color: theme.textStrong }}
+            className="font-black leading-[1.08]"
+            style={{ color: theme.textStrong, fontSize: scaledPx(72) }}
           >
             {slide.title}
           </h2>
@@ -50,18 +50,19 @@ export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
             >
               <div className="flex items-start gap-5">
                 <span
-                  className="flex h-14 w-14 shrink-0 items-center justify-center text-[32px] font-black"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center font-black"
                   style={{
                     backgroundColor: theme.primary,
                     color: theme.primaryText,
                     borderRadius: radius(theme, "pill"),
+                    fontSize: scaledPx(32),
                   }}
                 >
                   Q
                 </span>
                 <p
-                  className="flex-1 pt-2 text-[36px] font-bold leading-[1.3]"
-                  style={{ color: theme.textStrong }}
+                  className="flex-1 pt-2 font-bold leading-[1.3]"
+                  style={{ color: theme.textStrong, fontSize: scaledPx(36) }}
                 >
                   {item.q}
                 </p>
@@ -69,18 +70,19 @@ export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
               {item.a && (
                 <div className="mt-4 flex items-start gap-5">
                   <span
-                    className="flex h-14 w-14 shrink-0 items-center justify-center text-[32px] font-black"
+                    className="flex h-14 w-14 shrink-0 items-center justify-center font-black"
                     style={{
                       backgroundColor: theme.accent,
                       color: theme.textStrong,
                       borderRadius: radius(theme, "pill"),
+                      fontSize: scaledPx(32),
                     }}
                   >
                     A
                   </span>
                   <p
-                    className="flex-1 pt-2 text-[32px] leading-[1.4]"
-                    style={{ color: theme.textBody }}
+                    className="flex-1 pt-2 leading-[1.4]"
+                    style={{ color: theme.textBody, fontSize: scaledPx(32) }}
                   >
                     {item.a}
                   </p>

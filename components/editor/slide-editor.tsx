@@ -5,7 +5,7 @@ import { Slide } from "@/core/schema/note.schema";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Wand2, AlertTriangle } from "lucide-react";
+import { Save, Wand2, AlertTriangle, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { CardEditor } from "./card-editors";
 import { checkSlideOverflow } from "@/core/qa/overflow-check";
 import { CARD_TYPE_META } from "./card-type-meta";
@@ -109,6 +109,28 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
             未保存
           </span>
         )}
+      </div>
+
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-muted-foreground mr-1">对齐</span>
+        {([
+          { value: "left", icon: AlignLeft },
+          { value: "center", icon: AlignCenter },
+          { value: "right", icon: AlignRight },
+        ] as const).map(({ value, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => setEditing({ ...editing, textAlign: editing.textAlign === value ? null : value })}
+            className={`rounded p-1.5 transition-colors ${
+              editing.textAlign === value
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+            title={value === "left" ? "左对齐" : value === "center" ? "居中" : "右对齐"}
+          >
+            <Icon className="h-3.5 w-3.5" />
+          </button>
+        ))}
       </div>
 
       {overflow.warnings.length > 0 && (

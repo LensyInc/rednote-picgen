@@ -1,5 +1,5 @@
 import type React from "react";
-import { type CardProps, radius } from "./theme";
+import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { Highlight } from "./atoms";
 import { proxyImageUrl } from "@/lib/proxy-image";
@@ -34,8 +34,8 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
               />
             ) : (
               <div
-                className="flex h-full w-full items-center justify-center text-[48px]"
-                style={{ color: theme.textMuted }}
+                className="flex h-full w-full items-center justify-center"
+                style={{ color: theme.textMuted, fontSize: scaledPx(48) }}
               >
                 图片加载中…
               </div>
@@ -43,16 +43,16 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col gap-7 px-20 pt-10 pb-40">
+        <div className="flex flex-1 flex-col gap-7 px-20 pt-10 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
           <div>
             <h2
-              className="text-[64px] font-extrabold leading-[1.1]"
-              style={{ color: theme.textStrong }}
+              className="font-extrabold leading-[1.1]"
+              style={{ color: theme.textStrong, fontSize: scaledPx(64) }}
             >
               {slide.title}
             </h2>
             {slide.subtitle && (
-              <p className="mt-3 text-[34px]" style={{ color: theme.textMuted }}>
+              <p className="mt-3" style={{ color: theme.textMuted, fontSize: scaledPx(34) }}>
                 {slide.subtitle}
               </p>
             )}
@@ -70,8 +70,8 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
                   }}
                 />
                 <span
-                  className="text-[36px] leading-[1.4]"
-                  style={{ color: theme.textBody }}
+                  className="leading-[1.4]"
+                  style={{ color: theme.textBody, fontSize: scaledPx(36) }}
                 >
                   {bullet}
                 </span>

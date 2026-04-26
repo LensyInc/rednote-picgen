@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { Theme, fontClass, radius, type BackgroundType } from "./theme";
+import { Theme, fontClass, radius, type BackgroundType, type FontScale, FONT_SCALE_MAP, scaledPx } from "./theme";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 
 interface CardContainerProps {
@@ -8,6 +8,7 @@ interface CardContainerProps {
   backgroundType?: BackgroundType;
   pageIndex?: number;
   pageTotal?: number;
+  fontScale?: FontScale;
   className?: string;
   children: ReactNode;
 }
@@ -54,9 +55,11 @@ export function CardContainer({
   backgroundType = "solid",
   pageIndex,
   pageTotal,
+  fontScale = "medium",
   className,
   children,
 }: CardContainerProps) {
+  const scaleValue = FONT_SCALE_MAP[fontScale];
   return (
     <div
       className={cn("relative flex flex-col overflow-hidden", fontClass(theme), className)}
@@ -64,6 +67,7 @@ export function CardContainer({
         width: CARD_WIDTH,
         height: CARD_HEIGHT,
         color: theme.textBody,
+        ["--font-scale" as string]: scaleValue,
       }}
     >
       <BackgroundLayer theme={theme} type={backgroundType} />
@@ -74,8 +78,9 @@ export function CardContainer({
           style={{ color: theme.textMuted }}
         >
           <span
-            className="px-5 py-1 text-[28px] font-medium tabular-nums"
+            className="px-5 py-1 font-medium tabular-nums"
             style={{
+              fontSize: scaledPx(28),
               borderRadius: radius(theme, "pill"),
               backgroundColor: theme.mood === "dark" ? theme.surfaceSoft : theme.surface,
               color: theme.textMuted,

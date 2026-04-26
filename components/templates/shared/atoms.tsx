@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from "react";
-import { Theme, radius, withAlpha } from "./theme";
+import { Theme, radius, withAlpha, scaledPx } from "./theme";
 
 export function Tag({
   theme,
@@ -23,8 +23,8 @@ export function Tag({
   }
   return (
     <span
-      className="inline-flex items-center gap-2 px-6 py-2 text-[30px] font-semibold leading-tight"
-      style={style}
+      className="inline-flex items-center gap-2 px-6 py-2 font-semibold leading-tight"
+      style={{ ...style, fontSize: scaledPx(30) }}
     >
       {children}
     </span>
@@ -45,8 +45,8 @@ export function SectionTitle({
   return (
     <div className={className}>
       <h2
-        className="text-[72px] font-extrabold leading-[1.1] tracking-tight"
-        style={{ color: theme.textStrong }}
+        className="font-extrabold leading-[1.1] tracking-tight"
+        style={{ color: theme.textStrong, fontSize: scaledPx(72) }}
       >
         {children}
       </h2>
@@ -82,7 +82,7 @@ export function NumberBadge({
         borderRadius: radius(theme, "pill"),
         backgroundColor: theme.primary,
         color: theme.primaryText,
-        fontSize: font,
+        fontSize: scaledPx(font),
         lineHeight: 1,
         ...overrideStyle,
       }}
@@ -120,7 +120,7 @@ export function Highlight({
           opacity: 0.8,
         }}
       />
-      <p className="text-[34px] font-medium leading-[1.4]">{children}</p>
+      <p className="font-medium leading-[1.4]" style={{ fontSize: scaledPx(34) }}>{children}</p>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type React from "react";
-import { type CardProps, radius } from "./theme";
+import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 
 export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal }: CardProps) {
@@ -10,21 +10,21 @@ export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
       pageIndex={pageIndex}
       pageTotal={pageTotal}
     >
-      <div className="flex h-full flex-col justify-center px-20 pb-40">
+      <div className="flex h-full flex-col justify-center px-20 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <span
           className="mb-8 inline-block h-[6px] w-20"
           style={{ backgroundColor: theme.primary, borderRadius: radius(theme, "sm") }}
         />
         <h2
-          className="text-[96px] font-bold leading-[1.1]"
-          style={{ color: theme.textStrong }}
+          className="font-bold leading-[1.1]"
+          style={{ color: theme.textStrong, fontSize: scaledPx(96) }}
         >
           {slide.title}
         </h2>
         {slide.subtitle && (
           <p
-            className="mt-8 max-w-[960px] text-[40px] leading-[1.45]"
-            style={{ color: theme.textBody }}
+            className="mt-8 max-w-[960px] leading-[1.45]"
+            style={{ color: theme.textBody, fontSize: scaledPx(40) }}
           >
             {slide.subtitle}
           </p>
@@ -32,12 +32,13 @@ export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
 
         {slide.highlight && (
           <div
-            className="mt-12 inline-flex self-start items-center gap-4 px-10 py-5 text-[36px] font-semibold"
+            className="mt-12 inline-flex self-start items-center gap-4 px-10 py-5 font-semibold"
             style={{
               backgroundColor: theme.surfaceSoft,
               color: theme.textStrong,
               borderRadius: radius(theme, "md"),
               border: `2px solid ${theme.divider}`,
+              fontSize: scaledPx(36),
             }}
           >
             {slide.highlight}
@@ -49,8 +50,8 @@ export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal }: 
             {slide.bullets.map((b, i) => (
               <li
                 key={i}
-                className="flex items-start gap-4 text-[34px] leading-[1.4]"
-                style={{ color: theme.textBody }}
+                className="flex items-start gap-4 leading-[1.4]"
+                style={{ color: theme.textBody, fontSize: scaledPx(34) }}
               >
                 <span
                   className="mt-3 h-3 w-3 shrink-0"

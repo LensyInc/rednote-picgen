@@ -15,12 +15,13 @@ import {
   TimelineCard,
   getThemeSafe,
 } from "@/components/templates/shared";
-import type { BackgroundType } from "@/components/templates/shared/theme";
+import type { BackgroundType, FontScale } from "@/components/templates/shared/theme";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 interface MapOptions {
   pageIndex?: number;
   pageTotal?: number;
+  fontScale?: FontScale;
 }
 
 export function mapSlideToComponent(
@@ -37,6 +38,7 @@ export function mapSlideToComponent(
     backgroundType: bg,
     pageIndex: options.pageIndex,
     pageTotal: options.pageTotal,
+    fontScale: options.fontScale,
   };
 
   const card = (() => {

@@ -1,5 +1,5 @@
 import type React from "react";
-import { type CardProps, radius } from "./theme";
+import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { SectionTitle, NumberBadge, Highlight } from "./atoms";
 
@@ -11,7 +11,7 @@ export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
       pageIndex={pageIndex}
       pageTotal={pageTotal}
     >
-      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40">
+      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
         <div className="flex items-start gap-6">
           <span
             className="mt-3 h-[72px] w-[14px] shrink-0"
@@ -22,7 +22,7 @@ export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
               {slide.title}
             </SectionTitle>
             {slide.subtitle && (
-              <p className="mt-4 text-[36px] leading-[1.4]" style={{ color: theme.textMuted }}>
+              <p className="mt-4 leading-[1.4]" style={{ color: theme.textMuted, fontSize: scaledPx(36) }}>
                 {slide.subtitle}
               </p>
             )}
@@ -34,8 +34,8 @@ export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal }:
             <li key={i} className="flex items-start gap-6">
               <NumberBadge theme={theme} index={i + 1} />
               <span
-                className="flex-1 pt-2 text-[40px] font-medium leading-[1.45]"
-                style={{ color: theme.textBody }}
+                className="flex-1 pt-2 font-medium leading-[1.45]"
+                style={{ color: theme.textBody, fontSize: scaledPx(40) }}
               >
                 {bullet}
               </span>

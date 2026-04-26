@@ -42,7 +42,7 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
     slide,
     document.theme.template,
     document.theme.backgroundType || "solid",
-    { pageIndex: slideIndex + 1, pageTotal: document.slides.length }
+    { pageIndex: slideIndex + 1, pageTotal: document.slides.length, fontScale: document.theme.fontScale }
   );
 
   return (

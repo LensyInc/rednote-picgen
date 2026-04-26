@@ -29,9 +29,10 @@ import {
   Paintbrush,
   Loader2,
   Download,
+  Type,
 } from "lucide-react";
 import { CARD_TYPES, createEmptySlide } from "@/components/editor/card-type-meta";
-import { THEMES, type BackgroundType } from "@/components/templates/shared/theme";
+import { THEMES, type BackgroundType, FONT_SCALE_MAP, type FontScale } from "@/components/templates/shared/theme";
 import { templateEnum } from "@/core/schema/request.schema";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
@@ -52,6 +53,12 @@ const BACKGROUND_TYPES: { value: BackgroundType; label: string; description: str
   { value: "gradient", label: "渐变", description: "柔和的双色渐变" },
   { value: "dots", label: "波点", description: "规则的点阵纹理" },
   { value: "lines", label: "横线", description: "等距的水平线" },
+];
+
+const FONT_SCALE_OPTIONS: { value: FontScale; label: string }[] = [
+  { value: "small", label: "小" },
+  { value: "medium", label: "中" },
+  { value: "large", label: "大" },
 ];
 
 function newSlideId() {
@@ -280,6 +287,13 @@ export default function HomePage() {
     setDocument({
       ...document,
       theme: { ...document.theme, backgroundType: type },
+    });
+  }
+
+  function handleFontScaleChange(fontScale: FontScale) {
+    setDocument({
+      ...document,
+      theme: { ...document.theme, fontScale },
     });
   }
 
@@ -533,6 +547,30 @@ export default function HomePage() {
               ))}
             </Popover>
 
+            <Popover
+              trigger={
+                <Button size="sm" variant="outline" className="gap-1.5">
+                  <Type className="h-3.5 w-3.5" />
+                  字号：{FONT_SCALE_OPTIONS.find((f) => f.value === document.theme.fontScale)?.label || "中"}
+                  <ChevronDown className="h-3 w-3 opacity-60" />
+                </Button>
+              }
+              contentClassName="w-[140px]"
+            >
+              {FONT_SCALE_OPTIONS.map((fs) => (
+                <PopoverItem
+                  key={fs.value}
+                  onClick={() => handleFontScaleChange(fs.value)}
+                  active={document.theme.fontScale === fs.value}
+                >
+                  <span className="min-w-0 flex-1 text-sm">{fs.label}</span>
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
+                    {Math.round(FONT_SCALE_MAP[fs.value] * 100)}%
+                  </span>
+                </PopoverItem>
+              ))}
+            </Popover>
+
             <div className="ml-auto text-xs text-muted-foreground tabular-nums">
               第 {selectedIndex + 1} / {document.slides.length} 页
             </div>
@@ -545,6 +583,7 @@ export default function HomePage() {
               backgroundType={backgroundType}
               pageIndex={selectedIndex + 1}
               pageTotal={document.slides.length}
+              fontScale={document.theme.fontScale}
             />
           </div>
         </main>
@@ -584,6 +623,7 @@ export default function HomePage() {
                 onSelect={setSelectedIndex}
                 templateId={document.theme.template}
                 backgroundType={backgroundType}
+                fontScale={document.theme.fontScale}
                 onMove={handleMoveSlide}
                 onDelete={handleDeleteSlide}
                 onDuplicate={handleDuplicateSlide}
@@ -729,7 +769,7 @@ export default function HomePage() {
               document.slides[exportTargetIndex],
               document.theme.template,
               backgroundType,
-              { pageIndex: exportTargetIndex + 1, pageTotal: document.slides.length }
+              { pageIndex: exportTargetIndex + 1, pageTotal: document.slides.length, fontScale: document.theme.fontScale }
             )}
           </div>
         </div>

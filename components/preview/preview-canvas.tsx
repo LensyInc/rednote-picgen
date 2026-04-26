@@ -4,7 +4,7 @@ import React from "react";
 import { Slide } from "@/core/schema/note.schema";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
-import type { BackgroundType } from "@/components/templates/shared/theme";
+import type { BackgroundType, FontScale } from "@/components/templates/shared/theme";
 
 interface PreviewCanvasProps {
   slide: Slide;
@@ -12,6 +12,7 @@ interface PreviewCanvasProps {
   backgroundType?: BackgroundType;
   pageIndex?: number;
   pageTotal?: number;
+  fontScale?: FontScale;
 }
 
 export function PreviewCanvas({
@@ -20,6 +21,7 @@ export function PreviewCanvas({
   backgroundType = "solid",
   pageIndex,
   pageTotal,
+  fontScale = "medium",
 }: PreviewCanvasProps) {
   const [scale, setScale] = React.useState(0.3);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -49,6 +51,7 @@ export function PreviewCanvas({
   const component = mapSlideToComponent(slide, templateId, backgroundType, {
     pageIndex,
     pageTotal,
+    fontScale,
   });
 
   return (

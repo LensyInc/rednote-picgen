@@ -12,5 +12,5 @@ export { FaqCard } from "./faq-card";
 export { ChecklistCard } from "./checklist-card";
 export { TimelineCard } from "./timeline-card";
 export { CardContainer } from "./card-container";
-export { THEMES, getTheme, getThemeSafe } from "./theme";
-export type { Theme, TemplateId, BackgroundType, CardProps } from "./theme";
+export { THEMES, getTheme, getThemeSafe, FONT_SCALE_MAP, scaledPx } from "./theme";
+export type { Theme, TemplateId, BackgroundType, CardProps, FontScale } from "./theme";

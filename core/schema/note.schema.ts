@@ -27,6 +27,7 @@ export const slideSchema = z.object({
   labelLeft: z.string().nullish(),
   labelRight: z.string().nullish(),
   comparisonStyle: z.enum(["good-bad", "ab"]).nullish(),
+  textAlign: z.enum(["left", "center", "right"]).nullish(),
   use_real_image: z.boolean(),
   image_query: z.string().nullish(),
   image: imageSchema.default(null),
