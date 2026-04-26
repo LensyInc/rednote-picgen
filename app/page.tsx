@@ -444,9 +444,33 @@ export default function HomePage() {
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-3">
         <div className="flex items-center gap-4 min-w-0">
-          <h1 className="text-lg font-black shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
+          <button
+            onClick={async () => {
+              try {
+                await fetchWithAuth("/api/save-document", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    taskId: document.taskId,
+                    document,
+                    version: document.version,
+                  }),
+                });
+              } catch {
+                // 自动保存失败也继续返回首页
+              }
+              setHasStarted(false);
+              setSelectedIndex(0);
+              setDocument(createBlankDocument());
+              setRightPanel("thumbnails");
+              setExportResult(null);
+              localStorage.removeItem("picgen_editing_task");
+            }}
+            className="text-lg font-black shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ fontFamily: "var(--font-wenkai)" }}
+          >
             PicGen
-          </h1>
+          </button>
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => { setRenameValue(document.meta.topic); setShowRename(true); }}
