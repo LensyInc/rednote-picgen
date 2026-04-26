@@ -155,6 +155,22 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
         <CardEditor slide={editing} onChange={setEditing} taskId={taskId} />
       </div>
 
+      {showRewrite && (
+        <div className="space-y-2 rounded-md border bg-muted/20 p-2">
+          <Label htmlFor={rewriteTextareaId} className="text-xs">重写指令（可选）</Label>
+          <Textarea
+            id={rewriteTextareaId}
+            value={rewriteInstruction}
+            onChange={(e) => setRewriteInstruction(e.target.value)}
+            className="min-h-[60px] resize-none text-sm"
+            placeholder="例如：让语气更中性、缩短要点..."
+          />
+          <Button size="sm" className="w-full" onClick={handleRewrite} disabled={isRewriting}>
+            {isRewriting ? "重写中..." : "确认重写"}
+          </Button>
+        </div>
+      )}
+
       <div className="sticky bottom-0 -mx-4 -mb-4 border-t bg-card px-4 py-3 flex gap-2">
         <Button size="sm" className="flex-1" onClick={handleSave} disabled={!dirty}>
           <Save className="mr-1.5 h-3.5 w-3.5" />
@@ -173,22 +189,6 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
           </Button>
         )}
       </div>
-
-      {showRewrite && (
-        <div className="space-y-2 rounded-md border bg-muted/20 p-2">
-          <Label htmlFor={rewriteTextareaId} className="text-xs">重写指令（可选）</Label>
-          <Textarea
-            id={rewriteTextareaId}
-            value={rewriteInstruction}
-            onChange={(e) => setRewriteInstruction(e.target.value)}
-            className="min-h-[60px] resize-none text-sm"
-            placeholder="例如：让语气更中性、缩短要点..."
-          />
-          <Button size="sm" className="w-full" onClick={handleRewrite} disabled={isRewriting}>
-            {isRewriting ? "重写中..." : "确认重写"}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
