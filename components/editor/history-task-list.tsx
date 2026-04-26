@@ -145,14 +145,15 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
     }
   }
 
-  async function handleDelete(taskId: string, e: React.MouseEvent) {
+  async function handleDelete(taskId: string, taskTopic: string, e: React.MouseEvent) {
     e.stopPropagation();
+    if (!confirm(`确定要删除任务「${taskTopic || "未命名项目"}」吗？`)) return;
     try {
       const res = await fetchWithAuth(`/api/tasks/${taskId}/delete`, {
         method: "POST",
       });
       if (res.ok) {
-        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+        window.location.reload();
       } else {
         const result = await safeParseResponse<{ error: string }>(res);
         setError(result.ok ? result.data.error : "删除失败");
@@ -250,7 +251,7 @@ export function HistoryTaskList({ onLoad }: HistoryTaskListProps) {
                     </div>
                   </button>
                   <button
-                    onClick={(e) => handleDelete(task.id, e)}
+                    onClick={(e) => handleDelete(task.id, task.topic, e)}
                     className="shrink-0 rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
                     title="删除记录"
                   >
