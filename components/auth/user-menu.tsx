@@ -7,8 +7,17 @@ import {
   Popover,
   PopoverItem,
 } from "@/components/ui/popover";
-import { LogOut, User, Zap, Crown, Sparkles, Pencil, Check } from "lucide-react";
+import { LogOut, User, Zap, Crown, Sparkles } from "lucide-react";
 import { UpgradeDialog } from "./upgrade-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CreditInfo {
   balance: number;
@@ -20,7 +29,7 @@ export function UserMenu() {
   const { user, isLoggedIn, isLoading, login, logout, updateDisplayName } = useAuth();
   const [credits, setCredits] = React.useState<CreditInfo | null>(null);
   const [showUpgrade, setShowUpgrade] = React.useState(false);
-  const [editingName, setEditingName] = React.useState(false);
+  const [showNameEditor, setShowNameEditor] = React.useState(false);
   const [nameDraft, setNameDraft] = React.useState("");
   const [savingName, setSavingName] = React.useState(false);
 
@@ -72,18 +81,6 @@ export function UserMenu() {
   const displayName = user?.displayName || user?.email?.split("@")[0] || "用户";
   const isPro = credits?.plan_type === "pro";
 
-  async function handleSaveName() {
-    const trimmed = nameDraft.trim();
-    if (!trimmed || trimmed === user?.displayName) {
-      setEditingName(false);
-      return;
-    }
-    setSavingName(true);
-    await updateDisplayName(trimmed);
-    setSavingName(false);
-    setEditingName(false);
-  }
-
   return (
     <>
       <Popover
@@ -104,44 +101,9 @@ export function UserMenu() {
         contentClassName="w-[240px]"
       >
         <div className="px-3 py-2 border-b">
-          <div className="flex items-center justify-between gap-2">
-            {editingName ? (
-              <div className="flex items-center gap-1 flex-1">
-                <input
-                  autoFocus
-                  className="flex-1 rounded border px-2 py-1 text-sm outline-none focus:border-primary"
-                  value={nameDraft}
-                  onChange={(e) => setNameDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveName();
-                    if (e.key === "Escape") setEditingName(false);
-                  }}
-                />
-                <button
-                  className="shrink-0 rounded p-1 text-primary hover:bg-primary/10"
-                  onClick={handleSaveName}
-                  disabled={savingName}
-                >
-                  <Check className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : (
-              <>
-                <p className="text-sm font-medium truncate">
-                  {user?.displayName || user?.email?.split("@")[0]}
-                </p>
-                <button
-                  className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted"
-                  onClick={() => {
-                    setNameDraft(user?.displayName || "");
-                    setEditingName(true);
-                  }}
-                >
-                  <Pencil className="h-3 w-3" />
-                </button>
-              </>
-            )}
-          </div>
+          <p className="text-sm font-medium truncate">
+            {user?.displayName || user?.email?.split("@")[0]}
+          </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {user?.email}
           </p>
@@ -174,6 +136,16 @@ export function UserMenu() {
 
         <PopoverItem
           onClick={() => {
+            setNameDraft(user?.displayName || "");
+            setShowNameEditor(true);
+          }}
+        >
+          <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span>修改用户名</span>
+        </PopoverItem>
+
+        <PopoverItem
+          onClick={() => {
             logout();
           }}
         >
@@ -181,6 +153,49 @@ export function UserMenu() {
           <span>退出登录</span>
         </PopoverItem>
       </Popover>
+
+      <Dialog open={showNameEditor} onOpenChange={setShowNameEditor}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>修改用户名</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="name-input">显示名称</Label>
+            <Input
+              id="name-input"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              placeholder="输入新的用户名"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const btn = document.getElementById("save-name-btn");
+                  btn?.click();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNameEditor(false)}>
+              取消
+            </Button>
+            <Button
+              id="save-name-btn"
+              disabled={savingName || !nameDraft.trim()}
+              onClick={async () => {
+                const trimmed = nameDraft.trim();
+                if (!trimmed) return;
+                setSavingName(true);
+                await updateDisplayName(trimmed);
+                setSavingName(false);
+                setShowNameEditor(false);
+              }}
+            >
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <UpgradeDialog open={showUpgrade} onOpenChange={setShowUpgrade} />
     </>
   );
