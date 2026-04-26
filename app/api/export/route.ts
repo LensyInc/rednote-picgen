@@ -10,7 +10,7 @@ export const maxDuration = 60;
 
 const exportRequestSchema = z.object({
   taskId: z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/),
-  slideIndex: z.number().int().min(1).max(12),
+  slideIndex: z.number().int().min(1).max(64),
   base64Image: z.string().regex(/^data:image\/(png|jpeg|webp);base64,/),
 });
 

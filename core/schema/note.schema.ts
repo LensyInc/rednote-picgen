@@ -55,7 +55,7 @@ export const noteDocumentSchema = z.object({
   slides: z
     .array(slideSchema)
     .min(1, "至少 1 页")
-    .max(12, "最多 12 页"),
+    .max(64, "最多 64 页"),
 });
 
 export type Slide = z.infer<typeof slideSchema>;

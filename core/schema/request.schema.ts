@@ -8,7 +8,10 @@ export const noteTypeEnum = z.enum([
   "comparison",
   "summary",
 ]);
-export const pageCountSchema = z.number().int().min(1).max(12);
+export const pageCountSchema = z.number().int().min(1).max(64);
+
+// AI 生成时页数限制
+const generatePageCountSchema = pageCountSchema.max(12);
 export const templateEnum = z.enum([
   "template-a",
   "template-b",
@@ -46,7 +49,7 @@ export const generateRequestSchema = z.object({
   audience: z.string().min(1, "受众不能为空").max(200),
   tone: toneEnum,
   noteType: noteTypeEnum,
-  pageCount: pageCountSchema,
+  pageCount: generatePageCountSchema,
   template: templateEnum.default("template-a"),
   includeRealImages: z.boolean().optional(),
   userOutline: z.string().max(4000).optional(),
