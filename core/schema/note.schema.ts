@@ -13,7 +13,7 @@ export const imageSchema = z
   .nullable()
   .transform((val) => {
     if (!val) return null;
-    if (!val.previewUrl && !val.fullUrl) return null;
+    if (!val.previewUrl && !val.fullUrl && !val.localPath) return null;
     return val;
   });
 
