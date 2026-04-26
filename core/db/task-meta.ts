@@ -149,7 +149,7 @@ export async function checkTaskAccess(
 ): Promise<"not_found" | "allowed" | "forbidden"> {
   const { data, error } = await getSupabase()
     .from("tasks")
-    .select("user_id, guest_id")
+    .select("user_id, guest_id, deleted_by")
     .eq("task_id", taskId)
     .maybeSingle();
 
@@ -158,6 +158,7 @@ export async function checkTaskAccess(
     throw new Error("查询任务权限时数据库出错");
   }
   if (!data) return "not_found";
+  if (data.deleted_by) return "not_found";
 
   if (identity.userId && data.user_id === identity.userId) return "allowed";
   if (identity.guestId && data.guest_id === identity.guestId) return "allowed";

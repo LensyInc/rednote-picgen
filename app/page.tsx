@@ -241,6 +241,9 @@ export default function HomePage() {
           lastSavedRef.current = JSON.stringify(doc);
           setDocument(doc);
           setHasStarted(true);
+        } else {
+          // 任务不存在或已被删除，清除本地记录
+          localStorage.removeItem("picgen_editing_task");
         }
       } catch {
         // ignore
