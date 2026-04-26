@@ -195,7 +195,7 @@ export default function HomePage() {
   React.useEffect(() => {
     const savedTaskId = localStorage.getItem("picgen_editing_task");
     if (!savedTaskId) {
-      setRestoring(false);
+      queueMicrotask(() => setRestoring(false));
       return;
     }
     (async () => {

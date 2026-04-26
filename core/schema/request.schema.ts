@@ -33,6 +33,7 @@ export const slideTypeEnum = z.enum([
   "faq",
   "checklist",
   "timeline",
+  "prose",
 ]);
 export const backgroundTypeEnum = z.enum(["solid", "gradient", "dots", "lines"]);
 export type BackgroundType = z.infer<typeof backgroundTypeEnum>;

@@ -31,6 +31,7 @@ export const slideSchema = z.object({
   use_real_image: z.boolean(),
   image_query: z.string().nullish(),
   image: imageSchema.default(null),
+  imagePosition: z.enum(["top", "bottom", "background"]).optional(),
 });
 
 export const noteDocumentSchema = z.object({

@@ -26,6 +26,7 @@ interface CardEditorProps {
 
 function ImageSection({ slide, onChange }: CardEditorProps) {
   const switchId = React.useId();
+  const pos = slide.imagePosition || "top";
   function onSelect(image: StockSearchResult | null) {
     if (image) {
       onChange({
@@ -67,6 +68,29 @@ function ImageSection({ slide, onChange }: CardEditorProps) {
       </div>
       {slide.use_real_image && (
         <>
+          <div className="space-y-1.5">
+            <Label className="text-xs">图片位置</Label>
+            <div className="grid grid-cols-3 gap-1">
+              {([
+                { value: "top", label: "顶部" },
+                { value: "background", label: "背景" },
+                { value: "bottom", label: "底部" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => onChange({ ...slide, imagePosition: opt.value })}
+                  className={`rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    pos === opt.value
+                      ? "border-primary bg-primary/10 text-primary font-medium"
+                      : "border-border hover:bg-muted"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <ImageCandidatePicker
             key={slide.image_query || "none"}
             query={slide.image_query}
@@ -270,6 +294,22 @@ function ImageOnlyEditor(props: CardEditorProps) {
   );
 }
 
+function ProseEditor(props: CardEditorProps) {
+  return (
+    <>
+      <BulletListField
+        {...props}
+        label="正文段落"
+        maxBullets={6}
+        placeholder="一段正文内容"
+      />
+      <HighlightField {...props} />
+      <ImageSection {...props} />
+      <Hint>纯文本页无标题，每条内容作为独立段落显示。</Hint>
+    </>
+  );
+}
+
 export function CardEditor({ slide, onChange }: CardEditorProps) {
   const props = { slide, onChange };
   switch (slide.type) {
@@ -299,6 +339,8 @@ export function CardEditor({ slide, onChange }: CardEditorProps) {
       return <ChecklistEditor {...props} />;
     case "timeline":
       return <TimelineEditor {...props} />;
+    case "prose":
+      return <ProseEditor {...props} />;
     default:
       console.warn(`[card-editors] 未知卡片类型: ${slide.type}`)
       return <ContentEditor {...props} />;

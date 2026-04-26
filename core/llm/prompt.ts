@@ -58,15 +58,16 @@ ${includeRealImages ? "需要插入真实图片" : "不需要真实图片"}${use
 要求：
 - 第一页必须是 cover
 - 最后一页必须是 cta
-- 中间页使用 content / summary / image / quote / tips / comparison / step / stats / faq / checklist / timeline 类型
+- 中间页使用 content / summary / image / quote / tips / comparison / step / stats / faq / checklist / timeline / prose 类型
   · quote: 金句引用页，适合放名言或核心观点
   · tips: 小贴士页，适合放多个实用建议
-  · comparison: 对比页，适合"推荐做 vs 别踩坑"、正反对照
+  · comparison: 对比页，支持"对错"（推荐 vs 避坑）和"AB 对照"（方案 A vs 方案 B）两种模式
   · step: 步骤教程页，适合分步讲解
   · stats: 数据统计页，每条写成 "数值：标签" 或 "数值 - 标签" 形式（如 "83%：用户满意度"）
   · faq: 问答页，每条写成 "问题？答案" 形式
   · checklist: 检查清单页，适合待办事项
   · timeline: 时间线页，适合发展阶段或流程顺序
+  · prose: 纯文本页，无标题，适合大段叙述或感悟
 - 每页标题控制在 16 字以内，但不要过度精简到像电报体；要能独立成为一个有信息量的标题
 - coreMessage 用 1-2 句话把这一页要讲的事说清楚，避免空话
 - 各页内容主题不要重复，覆盖不同角度${userOutline?.trim() ? "\n- 如果用户大纲已指定某页的主题，保留其原意" : ""}
@@ -117,13 +118,16 @@ ${outline.map((s, i) => `${i + 1}. [${s.type}] ${s.title} — ${s.coreMessage}`)
 
 字段说明：
 - id: 使用 slide-1, slide-2, ... slide-${pageCount}
-- type: cover / content / summary / cta / image / quote / tips / comparison / step / stats / faq / checklist / timeline
+- type: cover / content / summary / cta / image / quote / tips / comparison / step / stats / faq / checklist / timeline / prose
 - title: 页面标题
 - subtitle: 副标题/说明句（可选，长度 15-25 字）
 - bullets: 要点列表，每页 4-6 条为佳（最多 7 条）
 - highlight: 一句亮点/结论/金句（可选，20-35 字），不需要时设为 null
 - use_real_image: ${includeRealImages ? "图文页、封面可以设为 true" : "全部设为 false"}
 - image_query: 如果 use_real_image 为 true，填写英文或中英混合的搜索关键词
+- comparisonStyle: comparison 页专用，"good-bad"（默认，对错）或 "ab"（双栏对照），不需要时设为 null
+- labelLeft / labelRight: comparison 页两栏表头文字（可选），不需要时设为 null
+- imagePosition: 图片在页面中的位置，"top"（顶部，默认）、"bottom"（底部）或 "background"（半透明背景），不需要时设为 null
 
 内容约束（请严格遵守）：
 - 标题：不超过 18 字，要有信息量，不要只写"总结"、"技巧"这种空壳
@@ -133,7 +137,7 @@ ${outline.map((s, i) => `${i + 1}. [${s.type}] ${s.title} — ${s.coreMessage}`)
 - highlight：20-35 字，作为这页的金句或行动号召
 - stats 类型的 bullet：写成 "数值：标签" 或 "数值 — 标签"，如 "83%：下班后仍查邮件的白领比例"
 - faq 类型的 bullet：写成 "问题？答案"，问号后紧接答案
-- comparison 类型的 bullet：前一半是"推荐方案"，后一半是"需留意的做法"
+- comparison 类型的 bullet：前半 bullets 归左栏，后半归右栏；默认"对错"模式（左推荐、右留意），也可设 comparisonStyle 为 "ab"（双栏平等对照）；两栏表头通过 labelLeft / labelRight 自定义
 - timeline / step 类型：bullet 按时间或操作顺序排列
 
 输出格式：

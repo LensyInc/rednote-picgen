@@ -13,6 +13,7 @@ import {
   FaqCard,
   ChecklistCard,
   TimelineCard,
+  ProseCard,
   getThemeSafe,
 } from "@/components/templates/shared";
 import type { BackgroundType, FontScale } from "@/components/templates/shared/theme";
@@ -70,6 +71,8 @@ export function mapSlideToComponent(
       return <ChecklistCard {...props} />;
     case "timeline":
       return <TimelineCard {...props} />;
+    case "prose":
+      return <ProseCard {...props} />;
     default: {
       console.warn(`[mapSlideToComponent] 未知 slide 类型: ${slide.type}, 降级为 TextCard`);
       return <TextCard {...props} />;

@@ -3,9 +3,16 @@ import { type CardProps, radius, scaledPx } from "./theme";
 import { CardContainer } from "./card-container";
 import { proxyImageUrl } from "@/lib/proxy-image";
 
+const BG_POS_MAP: Record<string, string> = {
+  top: "center top",
+  background: "center center",
+  bottom: "center bottom",
+};
+
 export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
   const hasImage = !!imgSrc;
+  const pos = slide.imagePosition || "top";
   return (
     <CardContainer
       theme={theme}
@@ -20,7 +27,7 @@ export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
           style={{
             backgroundImage: `url("${imgSrc}")`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: BG_POS_MAP[pos] || "center",
             opacity: 0.14,
           }}
         />
