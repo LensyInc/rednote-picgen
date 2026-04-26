@@ -57,19 +57,25 @@ function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     console.log("[upload] handleUpload called", e.target.files);
     const file = e.target.files?.[0];
-    if (!file || !taskId) return;
+    if (!file || !taskId) {
+      console.log("[upload] no file or no taskId", { file, taskId });
+      return;
+    }
     setUploading(true);
     setUploadError(null);
     try {
       const form = new FormData();
       form.append("taskId", taskId);
       form.append("file", file);
+      console.log("[upload] sending request", { taskId, fileName: file.name, fileSize: file.size });
       const res = await fetchWithAuth("/api/upload-image", {
         method: "POST",
         body: form,
       });
+      console.log("[upload] response", { status: res.status, ok: res.ok });
       if (res.ok) {
         const data = await res.json();
+        console.log("[upload] success", data);
         onChange({
           ...slide,
           use_real_image: true,
@@ -81,10 +87,13 @@ function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
           },
         });
       } else {
-        const err = await res.json().catch(() => ({}));
+        const text = await res.text();
+        console.log("[upload] error response", text);
+        const err = JSON.parse(text);
         setUploadError(err.error || "上传失败，请重试");
       }
     } catch (e) {
+      console.error("[upload] exception", e);
       setUploadError("上传失败，请重试");
     } finally {
       setUploading(false);
