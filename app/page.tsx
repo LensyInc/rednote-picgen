@@ -444,7 +444,7 @@ export default function HomePage() {
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b bg-card px-5 py-3">
         <div className="flex items-center gap-4 min-w-0">
-          <h1 className="text-base font-bold shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
+          <h1 className="text-lg font-black shrink-0" style={{ fontFamily: "var(--font-wenkai)" }}>
             PicGen
           </h1>
           <div className="flex items-center gap-3 min-w-0">
