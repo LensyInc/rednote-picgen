@@ -7,25 +7,44 @@ import { CARD_HEIGHT } from "@/core/render/card-dimensions";
 
 export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const src = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
-  const hasImage = slide.use_real_image && !!src;
+  const hasImage = slide.use_real_image;
   const pos = slide.imagePosition || "top";
 
   const imgBlock = hasImage ? (
-    <div
-      className="relative w-full shrink-0 overflow-hidden p-16"
-      style={{ height: CARD_HEIGHT * 0.4 }}
-    >
+    src ? (
       <div
-        className="relative h-full w-full overflow-hidden"
-        style={{
-          borderRadius: radius(theme, "lg"),
-          backgroundColor: theme.surfaceSoft,
-        }}
+        className="relative w-full shrink-0 overflow-hidden p-16"
+        style={{ height: CARD_HEIGHT * 0.4 }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src!} alt={slide.title || "插图"} className="h-full w-full object-cover" />
+        <div
+          className="relative h-full w-full overflow-hidden"
+          style={{
+            borderRadius: radius(theme, "lg"),
+            backgroundColor: theme.surfaceSoft,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={slide.title || "插图"} className="h-full w-full object-cover" />
+        </div>
       </div>
-    </div>
+    ) : (
+      <div
+        className="relative w-full shrink-0 overflow-hidden p-16"
+        style={{ height: CARD_HEIGHT * 0.4 }}
+      >
+        <div
+          className="relative flex h-full w-full items-center justify-center"
+          style={{
+            borderRadius: radius(theme, "lg"),
+            backgroundColor: theme.surfaceSoft,
+            color: theme.textMuted,
+            fontSize: scaledPx(48),
+          }}
+        >
+          图片加载中…
+        </div>
+      </div>
+    )
   ) : null;
 
   const bulletList = (
@@ -51,6 +70,7 @@ export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
   );
 
   if (pos === "background" && hasImage) {
+    const showBg = !!src;
     return (
       <CardContainer
         theme={theme}
@@ -60,19 +80,21 @@ export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
         fontScale={fontScale}
       >
         <div className="relative flex h-full flex-col items-center justify-center">
-          <div className="absolute inset-0 flex items-center justify-center px-16 py-16">
-            <div
-              className="relative h-full w-full overflow-hidden"
-              style={{
-                borderRadius: radius(theme, "lg"),
-                backgroundColor: theme.surfaceSoft,
-                opacity: 0.18,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src!} alt={slide.title || "插图"} className="h-full w-full object-cover" />
+          {showBg && (
+            <div className="absolute inset-0 flex items-center justify-center px-16 py-16">
+              <div
+                className="relative h-full w-full overflow-hidden"
+                style={{
+                  borderRadius: radius(theme, "lg"),
+                  backgroundColor: theme.surfaceSoft,
+                  opacity: 0.18,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src!} alt={slide.title || "插图"} className="h-full w-full object-cover" />
+              </div>
             </div>
-          </div>
+          )}
           <div className="relative z-10 flex h-full w-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
             {bulletList}
             {slide.highlight && <Highlight theme={theme} tone="soft">{slide.highlight}</Highlight>}
