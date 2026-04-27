@@ -60,12 +60,12 @@ export async function POST(req: NextRequest) {
               plan_type: "pro",
             }, { onConflict: "user_id" });
 
-            // 升级用户点数为 Pro 配额（100/天）
-            await supabase.rpc("grant_daily_credits", { p_user_id: userId });
+            // 先升级 daily_quota 为 100，再调用 grant_daily_credits 将余额重置到 100
             await supabase.from("user_credits").update({
               daily_quota: 100,
               plan_type: "pro",
             }).eq("user_id", userId);
+            await supabase.rpc("grant_daily_credits", { p_user_id: userId });
 
             await supabase.from("credit_logs").insert({
               user_id: userId,

@@ -101,6 +101,17 @@ export default function HomePage() {
     ensureGuestId();
   }, []);
 
+  // 检测升级成功回跳，等待 webhook 处理完成后刷新页面以更新点数
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("upgrade") === "success") {
+      const timer = setTimeout(() => {
+        window.location.href = "/";
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const [hasStarted, setHasStarted] = React.useState(false);
   const [document, setDocument] = React.useState<NoteDocument>(() => createBlankDocument());
   const [selectedIndex, setSelectedIndex] = React.useState(0);

@@ -7,7 +7,7 @@ import {
   Popover,
   PopoverItem,
 } from "@/components/ui/popover";
-import { LogOut, User, Zap, Crown, Sparkles } from "lucide-react";
+import { LogOut, User, Zap, Crown, Sparkles, Settings, Loader2 } from "lucide-react";
 import { UpgradeDialog } from "./upgrade-dialog";
 import {
   Dialog,
@@ -32,6 +32,27 @@ export function UserMenu() {
   const [showNameEditor, setShowNameEditor] = React.useState(false);
   const [nameDraft, setNameDraft] = React.useState("");
   const [savingName, setSavingName] = React.useState(false);
+  const [portalLoading, setPortalLoading] = React.useState(false);
+
+  const handleManageSubscription = React.useCallback(async () => {
+    setPortalLoading(true);
+    try {
+      const res = await fetch("/api/stripe/create-portal-session", {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      setPortalLoading(false);
+    }
+  }, []);
 
   const fetchCredits = React.useCallback(async () => {
     if (!isLoggedIn) return;
@@ -121,6 +142,19 @@ export function UserMenu() {
               今日剩余 AI 生成次数
             </p>
           </div>
+        )}
+
+        {isPro && (
+          <PopoverItem
+            onClick={portalLoading ? undefined : handleManageSubscription}
+          >
+            {portalLoading ? (
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+            ) : (
+              <Settings className="h-4 w-4 shrink-0 text-muted-foreground" />
+            )}
+            <span>管理订阅</span>
+          </PopoverItem>
         )}
 
         {!isPro && (
