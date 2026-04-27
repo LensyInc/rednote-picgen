@@ -22,7 +22,9 @@ import { Label } from "@/components/ui/label";
 interface CreditInfo {
   balance: number;
   daily_quota: number;
+  daily_reset_at?: string;
   plan_type: string;
+  plan_expires_at?: string | null;
 }
 
 export function UserMenu() {
@@ -127,7 +129,11 @@ export function UserMenu() {
             {user?.email}
           </p>
           <p className="text-xs text-muted-foreground">
-            {isPro ? "Pro 会员" : "免费用户"}
+            {isPro
+              ? credits?.plan_expires_at
+                ? `Pro 会员 · 到期 ${new Date(credits.plan_expires_at).toLocaleDateString("zh-CN")}`
+                : "Pro 会员 · 订阅中"
+              : "免费用户"}
           </p>
         </div>
 

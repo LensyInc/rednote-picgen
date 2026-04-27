@@ -11,12 +11,14 @@ create table if not exists tasks (
   guest_id text,
   topic text not null,
   page_count int not null,
+  deleted_by text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 
 create index if not exists idx_tasks_user_id on tasks(user_id);
 create index if not exists idx_tasks_guest_id on tasks(guest_id);
+create index if not exists idx_tasks_deleted_by on tasks(deleted_by) where deleted_by is not null;
 create index if not exists idx_tasks_created_at on tasks(created_at desc);
 
 -- 用户点数表（仅登录用户）
@@ -26,6 +28,7 @@ create table if not exists user_credits (
   daily_quota int not null default 3,
   daily_reset_at timestamptz default now(),
   plan_type text not null default 'free' check (plan_type in ('free', 'pro')),
+  plan_expires_at timestamptz,
   updated_at timestamptz default now()
 );
 
@@ -34,7 +37,7 @@ create table if not exists credit_logs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   amount int not null,
-  type text not null check (type in ('daily_grant', 'consume', 'refund', 'subscription_bonus')),
+  type text not null check (type in ('daily_grant', 'consume', 'refund', 'subscription_bonus', 'onetime_bonus')),
   description text,
   task_id text,
   created_at timestamptz default now()
@@ -60,7 +63,7 @@ create table if not exists subscriptions (
 -- 点数操作函数
 -- ============================================
 
--- 检查并重置每日点数（自然日 UTC+8）
+-- 检查并重置每日点数（自然日 UTC+8），Pro 过期自动降级
 create or replace function grant_daily_credits(p_user_id uuid)
 returns void
 language plpgsql
@@ -76,6 +79,20 @@ begin
     insert into user_credits (user_id, balance, daily_quota, daily_reset_at, plan_type)
     values (p_user_id, 3, 3, v_now, 'free');
     return;
+  end if;
+
+  -- Pro 会员过期自动降级为 free（仅对一次性购买生效，plan_expires_at 不为 null）
+  if v_record.plan_type = 'pro'
+     and v_record.plan_expires_at is not null
+     and v_record.plan_expires_at < v_now then
+    update user_credits
+    set plan_type = 'free',
+        daily_quota = 3,
+        plan_expires_at = null,
+        updated_at = v_now
+    where user_id = p_user_id;
+    -- 重新获取更新后的记录
+    select * into v_record from user_credits where user_id = p_user_id;
   end if;
 
   if v_record.daily_reset_at < v_today_start then
@@ -100,7 +117,7 @@ declare
   v_now timestamptz := now();
   v_record record;
 begin
-  -- 先确保每日点数已刷新
+  -- 先确保每日点数已刷新（含过期降级检查）
   perform grant_daily_credits(p_user_id);
 
   select * into v_record from user_credits where user_id = p_user_id for update;
@@ -143,13 +160,14 @@ end;
 $$;
 
 -- 获取用户点数信息
+drop function if exists get_user_credit_info(uuid);
 create or replace function get_user_credit_info(p_user_id uuid)
-returns table(balance int, daily_quota int, daily_reset_at timestamptz, plan_type text)
+returns table(balance int, daily_quota int, daily_reset_at timestamptz, plan_type text, plan_expires_at timestamptz)
 language plpgsql
 as $$
 begin
   perform grant_daily_credits(p_user_id);
-  return query select uc.balance, uc.daily_quota, uc.daily_reset_at, uc.plan_type
+  return query select uc.balance, uc.daily_quota, uc.daily_reset_at, uc.plan_type, uc.plan_expires_at
                from user_credits uc where uc.user_id = p_user_id;
 end;
 $$;

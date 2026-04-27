@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Zap, Loader2 } from "lucide-react";
+import { Crown, Zap, Loader2, CreditCard, RefreshCw } from "lucide-react";
 
 export function UpgradeDialog({
   open,
@@ -19,15 +19,17 @@ export function UpgradeDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const { isLoggedIn } = useAuth();
-  const [loading, setLoading] = React.useState(false);
+  const [loadingType, setLoadingType] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
-  async function handleUpgrade() {
+  async function handleUpgrade(paymentType: "subscription" | "onetime") {
     setError(null);
-    setLoading(true);
+    setLoadingType(paymentType);
     try {
       const res = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: paymentType }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -41,7 +43,7 @@ export function UpgradeDialog({
     } catch {
       setError("网络错误，请稍后再试");
     } finally {
-      setLoading(false);
+      setLoadingType(null);
     }
   }
 
@@ -89,21 +91,36 @@ export function UpgradeDialog({
             </div>
           )}
 
-          <Button
-            className="w-full"
-            onClick={handleUpgrade}
-            disabled={loading || !isLoggedIn}
-          >
-            {loading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Crown className="mr-2 h-4 w-4" />
-            )}
-            立即升级
-          </Button>
+          <div className="space-y-2">
+            <Button
+              className="w-full"
+              onClick={() => handleUpgrade("subscription")}
+              disabled={!!loadingType || !isLoggedIn}
+            >
+              {loadingType === "subscription" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              月度订阅（自动续费）
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => handleUpgrade("onetime")}
+              disabled={!!loadingType || !isLoggedIn}
+            >
+              {loadingType === "onetime" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              30天会员（一次购买）
+            </Button>
+          </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            通过 Stripe 安全支付，支持信用卡和借记卡。
+            通过 Stripe 安全支付。月度订阅自动续费，可随时取消；30天会员一次性购买，到期自动结束。
           </p>
         </div>
       </DialogContent>

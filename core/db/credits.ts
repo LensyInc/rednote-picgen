@@ -52,6 +52,7 @@ export async function getUserCreditInfo(userId: string): Promise<{
   daily_quota: number;
   daily_reset_at: string;
   plan_type: string;
+  plan_expires_at: string | null;
 } | null> {
   const { data, error } = await getSupabase().rpc("get_user_credit_info", {
     p_user_id: userId,

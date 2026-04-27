@@ -38,51 +38,79 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as {
           customer: string;
-          subscription: string;
-          metadata?: { user_id?: string };
+          subscription?: string;
+          mode: string;
+          metadata?: { user_id?: string; payment_type?: string };
         };
         const userId = session.metadata?.user_id;
-        if (userId) {
-          // 幂等：先检查是否已处理过此事件
-          const eventId = event.id;
-          const { data: existingLog } = await supabase
-            .from("credit_logs")
-            .select("id")
-            .eq("description", `subscription_bonus:${eventId}`)
-            .maybeSingle();
+        if (!userId) break;
 
-          if (!existingLog) {
-            await supabase.from("subscriptions").upsert({
-              user_id: userId,
-              stripe_customer_id: session.customer,
-              stripe_subscription_id: session.subscription,
-              status: "active",
-              plan_type: "pro",
-            }, { onConflict: "user_id" });
+        const paymentType = session.metadata?.payment_type || session.mode;
+        const eventId = event.id;
+        const logType = paymentType === "onetime" ? "onetime_bonus" : "subscription_bonus";
 
-            // 直接设置余额为 100，并升级 daily_quota 和 plan_type
-            await supabase.from("user_credits").update({
-              balance: 100,
-              daily_quota: 100,
-              plan_type: "pro",
-            }).eq("user_id", userId);
+        const { data: existingLog } = await supabase
+          .from("credit_logs")
+          .select("id")
+          .eq("description", `${logType}:${eventId}`)
+          .maybeSingle();
 
-            await supabase.from("credit_logs").insert({
-              user_id: userId,
-              amount: 100,
-              type: "subscription_bonus",
-              description: `subscription_bonus:${eventId}`,
-            });
-          }
+        if (existingLog) break;
+
+        if (paymentType === "onetime") {
+          // 一次性 30 天会员
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+          await supabase.from("subscriptions").upsert({
+            user_id: userId,
+            stripe_customer_id: session.customer,
+            status: "active",
+            plan_type: "pro",
+          }, { onConflict: "user_id" });
+
+          await supabase.from("user_credits").update({
+            balance: 100,
+            daily_quota: 100,
+            plan_type: "pro",
+            plan_expires_at: expiresAt,
+          }).eq("user_id", userId);
+
+          await supabase.from("credit_logs").insert({
+            user_id: userId,
+            amount: 100,
+            type: "onetime_bonus",
+            description: `${logType}:${eventId}`,
+          });
+        } else {
+          // 订阅模式
+          await supabase.from("subscriptions").upsert({
+            user_id: userId,
+            stripe_customer_id: session.customer,
+            stripe_subscription_id: session.subscription,
+            status: "active",
+            plan_type: "pro",
+          }, { onConflict: "user_id" });
+
+          await supabase.from("user_credits").update({
+            balance: 100,
+            daily_quota: 100,
+            plan_type: "pro",
+            plan_expires_at: null,
+          }).eq("user_id", userId);
+
+          await supabase.from("credit_logs").insert({
+            user_id: userId,
+            amount: 100,
+            type: "subscription_bonus",
+            description: `${logType}:${eventId}`,
+          });
         }
         break;
       }
       case "invoice.paid":
-        // 续费成功，可更新 current_period_end
         break;
       case "customer.subscription.deleted": {
         const subscription = event.data.object as { customer: string };
-        // 先查 user_id，再更新 subscription（顺序与之前不同，确保更新前能拿到 user_id）
         const { data: subRow } = await supabase
           .from("subscriptions")
           .select("user_id")
@@ -98,6 +126,7 @@ export async function POST(req: NextRequest) {
           await supabase.from("user_credits").update({
             daily_quota: 3,
             plan_type: "free",
+            plan_expires_at: null,
           }).eq("user_id", subRow.user_id);
         }
         break;
