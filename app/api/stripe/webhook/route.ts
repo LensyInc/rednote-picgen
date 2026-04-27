@@ -60,12 +60,12 @@ export async function POST(req: NextRequest) {
               plan_type: "pro",
             }, { onConflict: "user_id" });
 
-            // 先升级 daily_quota 为 100，再调用 grant_daily_credits 将余额重置到 100
+            // 直接设置余额为 100，并升级 daily_quota 和 plan_type
             await supabase.from("user_credits").update({
+              balance: 100,
               daily_quota: 100,
               plan_type: "pro",
             }).eq("user_id", userId);
-            await supabase.rpc("grant_daily_credits", { p_user_id: userId });
 
             await supabase.from("credit_logs").insert({
               user_id: userId,
