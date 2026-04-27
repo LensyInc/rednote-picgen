@@ -92,35 +92,45 @@ export function UpgradeDialog({
           )}
 
           <div className="space-y-2">
-            <Button
-              className="w-full"
-              onClick={() => handleUpgrade("subscription")}
-              disabled={!!loadingType || !isLoggedIn}
-            >
-              {loadingType === "subscription" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
-              月度订阅（自动续费）
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleUpgrade("onetime")}
-              disabled={!!loadingType || !isLoggedIn}
-            >
-              {loadingType === "onetime" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CreditCard className="mr-2 h-4 w-4" />
-              )}
-              30天会员（一次购买）
-            </Button>
+            <div>
+              <Button
+                className="w-full"
+                onClick={() => handleUpgrade("subscription")}
+                disabled={!!loadingType || !isLoggedIn}
+              >
+                {loadingType === "subscription" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                )}
+                月度订阅（自动续费）
+              </Button>
+              <p className="text-center text-[11px] text-muted-foreground mt-1">
+                通过 Stripe 支付，支持国际信用卡
+              </p>
+            </div>
+            <div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => handleUpgrade("onetime")}
+                disabled={!!loadingType || !isLoggedIn}
+              >
+                {loadingType === "onetime" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                30天会员（一次购买）
+              </Button>
+              <p className="text-center text-[11px] text-muted-foreground mt-1">
+                通过 Stripe 支付，支持微信支付和支付宝，建议切换到美元计价
+              </p>
+            </div>
           </div>
 
           <p className="text-center text-xs text-muted-foreground">
-            通过 Stripe 安全支付。月度订阅自动续费，可随时取消；30天会员一次性购买，到期自动结束。
+            月度订阅自动续费，可随时取消；30天会员一次性购买，到期自动结束。
           </p>
         </div>
       </DialogContent>
