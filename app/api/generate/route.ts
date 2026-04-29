@@ -9,7 +9,7 @@ import { consumeCredit, refundCredit } from "@/core/db/credits";
 import { upsertTaskMeta } from "@/core/db/task-meta";
 
 // 允许长时间运行（两段 LLM 调用在慢模型上可能超过 1 分钟）
-export const maxDuration = 600;
+export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
