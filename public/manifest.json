@@ -1,0 +1,17 @@
+{
+  "name": "PicGen - 小红书文字图片生成器",
+  "short_name": "PicGen",
+  "description": "AI 智能生成小红书风格图文卡片，在线制作精美排版",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF2442",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
