@@ -12,7 +12,7 @@ export function SummaryCard({ slide, theme, backgroundType, pageIndex, pageTotal
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <div className="flex flex-col gap-5">
           <Tag theme={theme} variant="soft">本篇重点</Tag>
           <h2

@@ -12,7 +12,7 @@ export function TipsCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={slide.textAlign ? { textAlign: slide.textAlign } : undefined}>
+      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <div className="flex flex-col gap-5">
           <Tag theme={theme} variant="soft">小贴士</Tag>
           <h2

@@ -12,7 +12,7 @@ export function ChecklistCard({ slide, theme, backgroundType, pageIndex, pageTot
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <div className="flex flex-col gap-4">
           <Tag theme={theme} variant="soft">检查清单</Tag>
           <h2

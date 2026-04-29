@@ -11,7 +11,7 @@ export function QuoteCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col justify-center px-20 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col justify-center px-20 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <span
           className="font-black leading-[0.8]"
           style={{

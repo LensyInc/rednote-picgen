@@ -11,7 +11,7 @@ export function CTACard({ slide, theme, backgroundType, pageIndex, pageTotal, fo
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col justify-center px-20 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col justify-center px-20 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <span
           className="mb-8 inline-block h-[6px] w-20"
           style={{ backgroundColor: theme.primary, borderRadius: radius(theme, "sm") }}

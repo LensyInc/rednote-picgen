@@ -95,7 +95,7 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
         pageTotal={pageTotal}
         fontScale={fontScale}
       >
-        <div className="relative flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+        <div className="relative flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
           <div className="absolute inset-0 flex items-center justify-center px-16 py-16">
             <div
               className="relative h-full w-full overflow-hidden"
@@ -131,7 +131,7 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col gap-8 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         {headerBlock}
         {pos === "top" && imgBlock}
         {bulletsBlock}

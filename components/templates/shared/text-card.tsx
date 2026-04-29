@@ -12,7 +12,7 @@ export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col gap-10 px-20 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <div className="flex items-start gap-6">
           <span
             className="mt-3 h-[72px] w-[14px] shrink-0"

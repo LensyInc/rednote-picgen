@@ -110,7 +110,7 @@ if (isAB) {
       pageTotal={pageTotal}
       fontScale={fontScale}
     >
-      <div className="flex h-full flex-col gap-10 px-16 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? undefined }}>
+      <div className="flex h-full flex-col gap-10 px-16 pt-24 pb-40" style={{ textAlign: slide.textAlign ?? "left" }}>
         <div className="flex flex-col items-start gap-5">
           <Tag theme={theme} variant="soft">
             {isAB ? "对照参考" : "对比参考"}

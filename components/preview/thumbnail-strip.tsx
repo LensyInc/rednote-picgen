@@ -22,7 +22,7 @@ interface ThumbnailStripProps {
   onDuplicate?: (index: number) => void;
 }
 
-const ThumbnailItem = React.memo(function ThumbnailItem({
+function ThumbnailItem({
   slide,
   index,
   selected,
@@ -68,7 +68,7 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
     >
       <button
         onClick={() => onSelect(index)}
-        className="relative overflow-hidden bg-card"
+        className="relative overflow-hidden bg-card text-left"
         style={{
           width: thumbW,
           height: thumbH,
@@ -164,7 +164,7 @@ const ThumbnailItem = React.memo(function ThumbnailItem({
       )}
     </div>
   );
-});
+}
 
 export function ThumbnailStrip({
   slides,
