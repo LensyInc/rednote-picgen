@@ -28,7 +28,7 @@ export async function generateNoteDocument(
       { role: "system", content: "你是一位专业的小红书内容策划师。" },
       { role: "user", content: prompt },
     ],
-    { temperature: 0.7, maxTokens: 8192 }
+    { temperature: 0.7, maxTokens: 4096 }
   );
 
   const parsed = parseLLMJson(response);

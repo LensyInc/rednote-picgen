@@ -21,7 +21,7 @@ class OpenAICompatibleProvider implements LLMProvider {
   private model: string;
 
   constructor(apiKey: string, baseURL: string, model: string) {
-    this.client = new OpenAI({ apiKey, baseURL, timeout: 300_000 });
+    this.client = new OpenAI({ apiKey, baseURL, timeout: 120_000 });
     this.model = model;
   }
 
@@ -39,7 +39,8 @@ class OpenAICompatibleProvider implements LLMProvider {
           messages: messages as OpenAI.Chat.ChatCompletionMessageParam[],
           temperature: options.temperature ?? 0.7,
           max_tokens: options.maxTokens ?? 4096,
-        });
+          thinking: { type: "disabled" },
+        } as OpenAI.Chat.ChatCompletionCreateParamsNonStreaming);
 
         const content = completion.choices[0]?.message?.content;
         if (!content) {
