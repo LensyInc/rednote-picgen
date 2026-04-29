@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Noto_Sans_SC } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -77,6 +78,7 @@ export const metadata: Metadata = {
   },
   other: {
     "baidu-site-verification": "codeva-f6oUn1Yq22",
+    "msvalidate.01": "CDDD18667C787F316FF56528A6C633E0",
   },
 };
 
@@ -95,6 +97,25 @@ export default function RootLayout({
           <JsonLd />
           {children}
         </AuthProvider>
+        <Script
+          id="baidu-auto-push"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    } else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+`,
+          }}
+        />
       </body>
     </html>
   );
