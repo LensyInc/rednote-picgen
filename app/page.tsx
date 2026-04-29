@@ -221,6 +221,17 @@ export default function HomePage() {
           } else {
             lastSavedRef.current = json;
           }
+        } else if (res.status === 409) {
+          // 版本冲突：服务端已保存但客户端 version 落后
+          // 更新本地 version 同步到服务端，不更新 lastSavedRef，
+          // 让下一次 effect 运行时检测到差异并重试保存
+          const data = await res.json().catch(() => ({}));
+          if (typeof data.currentVersion === "number") {
+            setDocument((prev) => {
+              if (prev.version === data.currentVersion) return prev;
+              return { ...prev, version: data.currentVersion };
+            });
+          }
         } else {
           console.error("[auto-save] status", res.status);
         }

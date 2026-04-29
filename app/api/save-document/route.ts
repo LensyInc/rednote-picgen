@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { saveTaskDocument, loadTaskDocument } from "@/core/storage/task-store";
+import { saveTaskDocument, loadTaskDocument, CONFLICT_ERROR } from "@/core/storage/task-store";
 import { noteDocumentSchema } from "@/core/schema/note.schema";
 import { getRequestIdentity } from "@/lib/auth-server";
 import { upsertTaskMeta, checkTaskAccess } from "@/core/db/task-meta";
@@ -10,10 +10,12 @@ export const dynamic = "force-dynamic";
 const taskIdSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 
 export async function POST(req: NextRequest) {
+  let taskId: string | undefined;
   try {
     const identity = await getRequestIdentity(req);
     const body = await req.json();
-    const { taskId, document: rawDocument } = body;
+    taskId = body.taskId;
+    const rawDocument = body.document;
 
     if (!taskId || !rawDocument) {
       return NextResponse.json(
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
         const currentDoc = await loadTaskDocument(taskId);
         if (currentDoc && currentDoc.version !== clientVersion) {
           return NextResponse.json(
-            { error: "文档已被修改，请刷新后重试" },
+            { error: "文档已被修改，请刷新后重试", currentVersion: currentDoc.version },
             { status: 409 }
           );
         }
@@ -76,6 +78,18 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, version: newVersion });
   } catch (e) {
+    if (e instanceof Error && e.message === CONFLICT_ERROR) {
+      // saveTaskDocument 乐观锁冲突（TOCTOU 窗口），返回当前版本
+      let currentVersion: number | undefined;
+      try {
+        const currentDoc = await loadTaskDocument(taskId!);
+        currentVersion = currentDoc?.version;
+      } catch {}
+      return NextResponse.json(
+        { error: "文档已被修改，请刷新后重试", currentVersion },
+        { status: 409 }
+      );
+    }
     console.error("[save-document] 保存失败:", e);
     return NextResponse.json({ error: "保存失败" }, { status: 500 });
   }
