@@ -1,4 +1,5 @@
 import React from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { loadTaskDocument } from "@/core/storage/task-store";
@@ -15,6 +16,44 @@ interface PreviewPageProps {
     taskId: string;
     slideId: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PreviewPageProps): Promise<Metadata> {
+  const { taskId, slideId } = await params;
+
+  const taskIdResult = taskIdSchema.safeParse(taskId);
+  if (!taskIdResult.success) return {};
+
+  const document = (await loadTaskDocument(taskId)) || null;
+  if (!document) return {};
+
+  const slideIndex = document.slides.findIndex((s) => s.id === slideId);
+  const slide = slideIndex >= 0 ? document.slides[slideIndex] : undefined;
+  if (!slide) return {};
+
+  const title = slide.title || document.meta.topic || "小红书卡片";
+  const description =
+    slide.bullets?.filter(Boolean).join("，") ||
+    slide.subtitle ||
+    `${document.meta.topic} - 小红书图文卡片`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${title} | PicGen`,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | PicGen`,
+      description,
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
 }
 
 export default async function PreviewPage({ params }: PreviewPageProps) {
