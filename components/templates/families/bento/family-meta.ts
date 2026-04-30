@@ -1,0 +1,48 @@
+import type { TemplateFamily } from "@/components/templates/shared-new/card-types";
+import {
+  CoverCard,
+  TextCard,
+  TextImageCard,
+  SummaryCard,
+  CTACard,
+  QuoteCard,
+  TipsCard,
+  ComparisonCard,
+  StepCard,
+  StatsCard,
+  FaqCard,
+  ChecklistCard,
+  TimelineCard,
+  ProseCard,
+} from "./index";
+
+export const bentoFamily: TemplateFamily = {
+  id: "bento",
+  name: "便当格",
+  description: "不对称大小格拼贴，重点内容以大块卡片突出",
+  requiresPro: true,
+  defaultTheme: "template-h",
+  supportsBackgrounds: ["solid", "gradient", "dots", "lines"],
+  capabilities: {
+    comparisonStyles: ["good-bad", "ab"],
+    imagePositions: ["top", "bottom", "background"],
+    maxBulletCount: 8,
+    supportsPageNumbers: true,
+  },
+  cards: {
+    CoverCard,
+    TextCard,
+    TextImageCard,
+    SummaryCard,
+    CTACard,
+    QuoteCard,
+    TipsCard,
+    ComparisonCard,
+    StepCard,
+    StatsCard,
+    FaqCard,
+    ChecklistCard,
+    TimelineCard,
+    ProseCard,
+  },
+};
