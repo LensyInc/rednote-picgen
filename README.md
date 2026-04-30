@@ -11,7 +11,7 @@ AI 驱动的小红书风格图文卡片设计与导出工具。
 - **AI 智能生成**：输入选题、目标人群、风格语调，AI 自动完成大纲策划与内容填充（登录用户每日免费 3 次，Pro 会员 100 次）
 - **游客友好**：未登录也可编辑卡片、导出 PNG、保存文档和历史记录
 - **双模式工作流**：支持「AI 生成」全自动产出，也支持「手动搭建」从零编辑
-- **13 种卡片类型**：封面、正文、图文、重点总结、小贴士、对比参考、操作步骤、关键数据、常见问答、检查清单、时间线、金句、结尾页
+- **14 种卡片类型**：封面、正文、纯文本、图文、重点总结、小贴士、对比参考、操作步骤、关键数据、常见问答、检查清单、时间线、金句、结尾页
 - **8 套配色主题**：温润桃粉、雾蓝商务、奶油琥珀、素雅极简、薰衣草灰、陶土暖褐、深林墨绿、柔粉日常
 - **4 种背景纹理**：纯色、渐变、波点、横线
 - **可视化编辑器**：实时预览、拖拽调整页面顺序、单页 AI 重写、文本溢出检查
@@ -203,8 +203,10 @@ picgen/
 │       ├── proxy-image/route.ts  # 外部图片同源代理
 │       ├── save-document/route.ts # 保存文档（游客+登录）
 │       ├── save-slide/route.ts   # 保存单页（游客+登录）
+│       ├── upload-image/route.ts # 本地上传图片至 R2
 │       ├── tasks/route.ts        # 历史任务列表（按身份过滤）
 │       ├── tasks/[taskId]/route.ts # 读取单个任务
+│       ├── assets/[taskId]/route.ts # 获取上传的素材图片
 │       ├── auth/merge-guest/route.ts # 合并游客数据
 │       ├── user/credits/route.ts # 查询用户点数
 │       ├── stripe/create-checkout-session/route.ts # Stripe 结账
@@ -215,23 +217,28 @@ picgen/
 │   │   ├── user-menu.tsx         # 右上角用户菜单（点数/升级/登出）
 │   │   └── upgrade-dialog.tsx    # Pro 升级弹窗
 │   ├── editor/                   # 编辑器面板
+│   │   ├── ai-generate-dialog.tsx # AI 生成弹窗
+│   │   ├── manual-start-dialog.tsx # 手动新建弹窗
 │   │   ├── topic-form.tsx        # AI 生成参数表单
 │   │   ├── slide-editor.tsx      # 单页内容编辑器
 │   │   ├── manual-builder.tsx    # 手动搭建模式
 │   │   ├── export-button.tsx     # 前端截图导出按钮
 │   │   ├── history-task-list.tsx # 历史任务列表
-│   │   ├── card-editors/         # 各类型卡片表单
-│   │   └── card-type-meta.ts     # 13 种卡片元数据
+│   │   ├── image-candidate-picker.tsx # 图库搜索/本地上传选择UI
+│   │   ├── card-editors/         # 各类型卡片表单（index.tsx + common.tsx + structured-editors.tsx）
+│   │   └── card-type-meta.ts     # 14 种卡片元数据
 │   ├── preview/                  # 预览相关
 │   │   ├── preview-canvas.tsx    # 自适应缩放画布
 │   │   └── thumbnail-strip.tsx   # 缩略图列表
-│   ├── templates/shared/         # 卡片渲染组件（13 种）
+│   ├── templates/shared/         # 卡片渲染组件（14 种）
 │   │   ├── theme.ts              # 8 套配色主题定义
 │   │   ├── card-container.tsx    # 统一容器 + 背景层
 │   │   ├── atoms.tsx             # 原子组件（Tag / Highlight 等）
 │   │   ├── cover-card.tsx        # 封面
 │   │   ├── text-card.tsx         # 正文
 │   │   ├── text-image-card.tsx   # 图文
+│   │   ├── prose-card.tsx        # 纯文本
+│   │   ├── index.ts              # 统一导出入口
 │   │   └── ...（其余 10 种卡片）
 │   └── ui/                       # 基础 UI 组件（Button / Input / Select 等）
 ├── core/
@@ -240,7 +247,10 @@ picgen/
 │   │   ├── generate-outline.ts   # 阶段 1：生成大纲
 │   │   ├── generate-note.ts      # 阶段 2：补全内容
 │   │   ├── rewrite-slide.ts      # 单页重写
-│   │   └── prompt.ts             # Prompt 构建器
+│   │   ├── prompt.ts             # Prompt 构建器
+│   │   ├── json-utils.ts         # 平衡花括号 JSON 提取
+│   │   ├── check-api-key.ts      # 运行时 API Key 检查
+│   │   └── sanitize.ts           # 用户输入清理
 │   ├── render/                   # 渲染层
 │   │   ├── map-slide-to-component.tsx  # slide.type -> 组件分派
 │   │   ├── template-registry.ts  # 模板配置注册
@@ -372,7 +382,7 @@ picgen-exports/        # 私有 bucket（R2_EXPORT_BUCKET_NAME）
 ## 扩展指南
 
 - **新增配色主题**：修改 `components/templates/shared/theme.ts` 中的 `THEMES` 对象，同时在 `core/schema/request.schema.ts` 的 `templateEnum` 中追加 ID
-- **新增卡片类型**：参考 `docs/adding-new-template.md` 中的架构规划。当前 13 种卡片由 `slideTypeEnum` 定义，渲染分派在 `core/render/map-slide-to-component.tsx`，编辑表单在 `components/editor/card-editors/`
+- **新增卡片类型**：参考 `docs/adding-new-template.md` 中的架构规划。当前 14 种卡片由 `slideTypeEnum` 定义，渲染分派在 `core/render/map-slide-to-component.tsx`，编辑表单在 `components/editor/card-editors/index.tsx`
 - **更换 LLM 提供商**：修改 `.env.local` 中的 `DEFAULT_LLM_PROVIDER`，或直接在 `core/llm/provider.ts` 中添加新的 Provider 实现
 - **修改点数配额**：编辑 `supabase/migrations/001_initial_schema.sql` 中的默认值，或直接在 Supabase SQL Editor 中修改 `user_credits` 表的记录
 - **接入其他支付方式**：在 `app/api/stripe/` 目录下新增路由，或参考现有实现添加新的支付提供商（如支付宝、微信）

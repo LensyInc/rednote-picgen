@@ -34,7 +34,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 ### 入口点
 - **编辑器 UI**：`app/page.tsx` —— 主客户端页面，使用 `useState` 管理唯一的 `document`。
 - **预览（截图目标）**：`app/preview/[taskId]/[slideId]/page.tsx` —— 服务端组件，读取 R2 并渲染单页。**必须保持 `dynamic = "force-dynamic"`**。
-- **API 路由**：`app/api/{generate,export,proxy-image,rewrite-slide,save-document,save-slide,stock-search,tasks,tasks/[taskId],auth/merge-guest,user/credits,stripe/create-checkout-session,stripe/webhook}/route.ts`。
+- **API 路由**：`app/api/{generate,export,proxy-image,rewrite-slide,save-document,save-slide,stock-search,upload-image,tasks,tasks/[taskId],assets/[taskId],auth/merge-guest,user/credits,stripe/create-checkout-session,stripe/webhook}/route.ts`。
 
 ### 卡片渲染流水线
 1. `mapSlideToComponent(slide, templateId, backgroundType, options)` 按 `slide.type` 分派组件。
@@ -88,7 +88,7 @@ npm run lint         # ESLint（flat 配置，eslint-config-next）
 - `.env.local` 已加入 `.gitignore`；切勿提交。
 - LLM 输出经过 `parseLLMJson` 解析（平衡花括号算法处理嵌套 JSON），然后通过 Zod schema 校验。
 
-## 新增 slide 类型（当前已有 13 种）
+## 新增 slide 类型（当前已有 14 种）
 
 按以下顺序编辑文件：
 1. `core/schema/request.schema.ts` —— 添加到 `slideTypeEnum`

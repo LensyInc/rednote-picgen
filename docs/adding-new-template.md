@@ -15,16 +15,15 @@ components/templates/
     ├── theme.ts                 # 8 套 Theme（color + corner + font + mood）
     ├── card-container.tsx       # 统一容器 + 页码徽章 + 背景层
     ├── atoms.tsx                # Tag / SectionTitle / NumberBadge / Highlight / SurfaceCard
-    ├── cover-card.tsx           # 13 种卡片，全部主题参数化
+    ├── prose-card.tsx           # 14 种卡片，全部主题参数化
     ├── content / image / summary / cta / quote / tips /
-    │   comparison / step / stats / faq / checklist / timeline
+    │   comparison / step / stats / faq / checklist / timeline / prose
     └── index.ts
-```
 
-路由点：`core/render/map-slide-to-component.tsx`，根据 `slide.type` 分派到上述 13 个组件，并把 `getTheme(templateId)` 的颜色注入。
+路由点：`core/render/map-slide-to-component.tsx`，根据 `slide.type` 分派到上述 14 个组件，并把 `getThemeSafe(templateId)` 的颜色注入。
 
 ### 1.2 局限
-- 所有 13 种卡片只有**一套排版**——只能用颜色、字体、圆角区分风格
+- 所有 14 种卡片只有**一套排版**——只能用颜色、字体、圆角区分风格
 - 无法做「杂志式左图右字」「大字报」「极简一句话封面」这种**结构性**差异
 - 已有 `templateEnum` 的 8 个 id 都被占用作为配色名，新增 id 会让"模板"与"配色"概念耦合更深
 
@@ -38,7 +37,7 @@ components/templates/
 
 | 维度 | 叫法 | 例子 | 存在形式 |
 |---|---|---|---|
-| **布局族** | **Template Family**（`familyId`） | `classic`（当前）/ `magazine` / `bigtype` / `grid` | 每家一个目录，含 13 个卡片组件 |
+| **布局族** | **Template Family**（`familyId`） | `classic`（当前）/ `magazine` / `bigtype` / `grid` | 每家一个目录，含 14 个卡片组件 |
 | **配色主题** | **Theme**（`themeId`） | `warm-rose` / `foggy-blue` / `midnight` ... | 一份 `Theme` 对象（色卡 + 圆角 + 字体） |
 
 **产物**：任意 family × theme 组合都能独立渲染，正交性 = 真正意义上的"模板不同"+"配色不同"。
@@ -51,7 +50,7 @@ components/templates/
 │   ├── theme.ts                 # 8 套 Theme（classic 直接读取）
 │   ├── card-container.tsx       # 容器 + 页码 + 背景层
 │   ├── atoms.tsx                # Tag / Highlight / SurfaceCard 等原子
-│   ├── (13 cards).tsx           # Classic 的 13 张卡片
+│   ├── (14 cards).tsx           # Classic 的 14 张卡片
 │   └── index.ts                 # 导出，供 classic family 引用
 ├── themes/
 │   └── theme.ts                 # Theme 对象集合（所有 family 的配色 truth source）
@@ -60,8 +59,8 @@ components/templates/
 │   │   ├── index.ts             # export { CoverCard } from "../../shared/cover-card" ...
 │   │   └── family-meta.ts       # name / description / defaultTheme / capabilities
 │   ├── magazine/                # 新 family 示例（后续加）
-│   │   ├── index.ts             # 导出 13 个卡片 + family 元信息
-│   │   └── (13 cards).tsx       # 全新排版
+│   │   ├── index.ts             # 导出 14 个卡片 + family 元信息
+│   │   └── (14 cards).tsx       # 全新排版
 │   └── ...
 ├── shared-new/                  # 新基础设施（不侵入 shared/）
 │   └── card-types.ts            # CardProps / CardComponents / TemplateFamily 类型
@@ -69,7 +68,7 @@ components/templates/
 ```
 
 **关键原则**：
-- `shared/` 目录是 **冻结资产**，现有 15 个文件（13 卡片 + container + theme）的源代码**禁止修改**
+- `shared/` 目录是 **冻结资产**，现有 16 个文件（14 卡片 + container + theme + atoms + index）的源代码**禁止修改**
 - `atoms.tsx` 如需补充新原子，以**追加导出**形式添加，不得改动已有代码
 - `shared/index.ts` 只能追加新导出，不得删除或改名现有导出
 - `themes/theme.ts` 初始内容是 `shared/theme.ts` 的完整复制，作为未来唯一 truth source；原有 8 套配色的 id 和值不可变更
@@ -88,7 +87,7 @@ export interface CardProps {
   pageTotal?: number;
 }
 
-// 每个 family 必须导出完整的 13 个卡片组件
+// 每个 family 必须导出完整的 14 个卡片组件
 export interface CardComponents {
   CoverCard: React.ComponentType<CardProps>;
   TextCard: React.ComponentType<CardProps>;
@@ -103,6 +102,7 @@ export interface CardComponents {
   FaqCard: React.ComponentType<CardProps>;
   ChecklistCard: React.ComponentType<CardProps>;
   TimelineCard: React.ComponentType<CardProps>;
+  ProseCard: React.ComponentType<CardProps>;
 }
 
 export interface TemplateFamily {
@@ -216,10 +216,10 @@ export function mapSlideToComponent(
 
 ### Step 4 — 新建第二个 family（magazine）
 - 新建 `families/magazine/` 目录
-- 13 张卡片全新排版（必须完整实现，不可只复用部分）
+- 14 张卡片全新排版（必须完整实现，不可只复用部分）
 - 在 `registry.ts` 注册
 - 如果卡片间有大量复用逻辑（如 header、footer、image frame），抽到 `shared/atoms.tsx`（追加导出）或 `shared-new/` 中
-- **校验点**：mock 数据覆盖 13 种 slide type，4 种背景 × 至少 2 套 theme，目视无溢出
+- **校验点**：mock 数据覆盖 14 种 slide type，4 种背景 × 至少 2 套 theme，目视无溢出
 
 ### Step 5 — Prompt 层可选优化（P3 / 暂不做）
 不同 family 对信息密度需求不同，可给 `buildContentPrompt` 传入当前 family，允许 family 定义内容偏好。先不做。
@@ -266,12 +266,13 @@ components/templates/shared/
 ├── faq-card.tsx
 ├── checklist-card.tsx
 ├── timeline-card.tsx
+├── prose-card.tsx
 ├── card-container.tsx
 ├── theme.ts
 └── atoms.tsx      # 允许追加新导出，禁止修改现有代码
 ```
 
-`shared/index.ts` 只能追加新导出，现有 16 行保持不动。
+`shared/index.ts` 只能追加新导出，现有导出保持不动。
 
 ### 5.2 画布尺寸不可变
 
@@ -322,11 +323,11 @@ components/templates/shared/
 
 每新增一个 family 必须完成：
 
-- [ ] 13 张卡片组件全部实现，没有遗漏 slide type
+- [ ] 14 张卡片组件全部实现，没有遗漏 slide type（参考 `slideTypeEnum` 当前列表）
 - [ ] 在 `registry.ts` 中注册，并填写 name / description / defaultTheme / capabilities
 - [ ] 在 `request.schema.ts` 的 `familyEnum` 中追加 id
 - [ ] 编辑器「模板」下拉能自动展示该 family（由 registry 驱动，无需额外代码）
-- [ ] mock 数据覆盖 13 种 slide type，4 种背景 × 2 套 theme，目视无溢出
+- [ ] mock 数据覆盖 14 种 slide type，4 种背景 × 2 套 theme，目视无溢出
 - [ ] `/api/export` 截图 8 张，确认无 dev 浮标、无空白、字体正常加载
 - [ ] 检查该 family 是否有特殊字体需求，如需则在 `layout.tsx` 或 `globals.css` 中预加载
 - [ ] 更新本文档「Family 候选方向」表格，标记该 family 为已实现
@@ -341,7 +342,7 @@ components/templates/shared/
 | Step 1 分派层改造 + 调用点同步 | ~100 行，1 小时 |
 | Step 2 Schema 直接替换 + LLM 层适配 | ~120 行，1.5 小时 |
 | Step 3 UI 下拉 + 自动保存联动 | ~80 行，30 分钟 |
-| Step 4 magazine 13 张卡片重画 | **主工作量**，合计 ~1000 行，1–1.5 天 |
+| Step 4 magazine 14 张卡片重画 | **主工作量**，合计 ~1000 行，1–1.5 天 |
 | 回归测试 + 微调 | 半天 |
 
 > 后续每加一个 family，只有 Step 4 会重复（1 天左右），其余基础设施一次性完成。
@@ -351,7 +352,7 @@ components/templates/shared/
 ## 9. 决策记录
 
 - ✅ 选「Template Family + Theme」正交拆分，而非「每家自带配色」—— 理由：8 套配色是重要资产，不想为每个新 family 重新调色
-- ✅ 选目录隔离而非单文件 switch —— 理由：13 张卡片 × 每家 60~120 行，写一起会爆炸
+- ✅ 选目录隔离而非单文件 switch —— 理由：14 张卡片 × 每家 60~120 行，写一起会爆炸
 - ✅ **Classic `shared/` 目录冻结不动** —— 理由：已开始基于 classic 创作，任何改动都会破坏已有作品
 - ❌ **不向前兼容旧 JSON 数据** —— 理由：项目自用，旧数据重新生成即可
 - ❌ 不引入插件化 family（动态 import / manifest） —— 理由：当前规模用不上，一个 registry 就够

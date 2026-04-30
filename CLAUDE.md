@@ -80,7 +80,7 @@
     audience: string;
     tone: string;
     noteType: string;
-    pageCount: number;          // 4–12
+    pageCount: number;          // 1–64（AI 生成限制 12 页内）
   },
   theme: {
     template: TemplateId;       // template-a ... template-h
@@ -97,7 +97,7 @@
 ```ts
 {
   id: string;
-  type: SlideType;              // cover / content / image / summary / tips / comparison / step / stats / faq / checklist / timeline / quote / cta
+  type: SlideType;              // cover / content / prose / image / summary / tips / comparison / step / stats / faq / checklist / timeline / quote / cta
   title: string;
   subtitle?: string | null;
   bullets: string[];            // 最多 8 条
@@ -105,9 +105,11 @@
   labelLeft?: string | null;    // comparison 专用
   labelRight?: string | null;   // comparison 专用
   comparisonStyle?: "good-bad" | "ab" | null;
+  textAlign?: "left" | "center" | "right" | null;
   use_real_image: boolean;
   image_query?: string | null;
-  image?: SlideImage | null;    // 图库搜索结果
+  image?: SlideImage | null;    // 图库搜索结果或本地上传
+  imagePosition?: "top" | "bottom" | "background";
 }
 ```
 
@@ -124,7 +126,7 @@
 ```
 app/page.tsx 中的 PreviewCanvas
   → mapSlideToComponent(slide, templateId, backgroundType, options)
-    → getThemeSafe(templateId) 获取 Theme 对象
+    → getThemeSafe(templateId) 获取 Theme 对象（注意：用 `getThemeSafe` 而非 `getTheme`，因为 templateId 是原始字符串）
     → switch(slide.type) 返回对应卡片组件
       → <XxxCard slide theme backgroundType pageIndex pageTotal />
         → <CardContainer> 统一容器 + 背景层 + 页码徽章
@@ -139,6 +141,7 @@ interface CardProps {
   backgroundType?: BackgroundType;
   pageIndex?: number;
   pageTotal?: number;
+  fontScale?: FontScale;
 }
 ```
 
@@ -162,6 +165,7 @@ Prompt 构建在 `core/llm/prompt.ts`：
 - `buildOutlinePrompt`：要求输出 JSON，第一页必须是 `cover`，最后一页必须是 `cta`
 - `buildContentPrompt`：约束标题长度、bullet 长度、字段格式（如 stats 写 "数值：标签"）
 - `buildRewritePrompt`：单页重写，保持字段结构不变。输入先经 `sanitizeSlideForPrompt()` 清理
+- 用户输入安全：`core/llm/sanitize.ts` 的 `sanitizeUserInput()` 在注入 prompt 前清除控制字符并截断长度
 
 ### 5.3 LLM Provider
 `core/llm/provider.ts` 提供 OpenAI-compatible 封装，支持：
@@ -169,6 +173,7 @@ Prompt 构建在 `core/llm/prompt.ts`：
 - DeepSeek：`DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`
 - 切换：`DEFAULT_LLM_PROVIDER` 环境变量
 - 重试策略：401 立即失败；超时、429、5xx 自动重试
+- API Key 检查：`core/llm/check-api-key.ts` 在请求前校验 Key 是否已配置，未配置时返回友好错误
 
 ### 5.4 JSON 解析安全
 `core/llm/json-utils.ts` 使用平衡花括号字符扫描算法（`extractFirstJsonObject`）提取 LLM 输出中的 JSON，能正确处理字符串内的花括号转义。
@@ -194,9 +199,11 @@ Prompt 构建在 `core/llm/prompt.ts`：
 
 ### 6.4 编辑面板
 `SlideEditor` 接收当前 `slide`，本地维护 `editing` 副本，保存时回传父组件。
-- `CardEditor`：根据 `slide.type` 渲染对应的表单字段
+- `CardEditor` (`components/editor/card-editors/index.tsx`)：根据 `slide.type` 渲染对应的表单字段；通用字段在 `common.tsx`，结构化编辑器（FAQ 对、统计数据对、对比列）在 `structured-editors.tsx`
+- `ImageCandidatePicker` (`components/editor/image-candidate-picker.tsx`)：图库搜索与本地上传选择 UI
 - 溢出检查：`checkSlideOverflow(editing)` 实时给出文本过长警告
 - AI 重写：调用 `/api/rewrite-slide`，传入 `taskId` + `slideId` + 可选指令，成功后同步版本号
+- 新建文档入口：`AIGenerateDialog`（AI 模式）和 `ManualStartDialog`（手动模式）
 
 ## 7. 导出链路
 
@@ -236,6 +243,7 @@ Prompt 构建在 `core/llm/prompt.ts`：
 |---------|---------|------|
 | 文档 JSON 本体 | R2 `documents/{taskId}.json` | 完整的 `NoteDocument`，版本控制 |
 | 导出 PNG | R2 `exports/{taskId}/slide-{n}.png` | 预签名 URL 下载 |
+| 本地上传素材 | R2 `assets/{taskId}/{uuid}.{ext}` | 用户上传的图片，通过 `/api/assets` 代理访问 |
 | 任务元数据 | PostgreSQL `tasks` 表 | task_id ↔ user_id/guest_id 关联，用于按身份过滤 |
 | 用户点数 | PostgreSQL `user_credits` 表 | 余额、每日配额、重置时间、计划类型 |
 | 点数流水 | PostgreSQL `credit_logs` 表 | 消费/回滚/每日重置/订阅奖励记录 |
@@ -272,6 +280,8 @@ Prompt 构建在 `core/llm/prompt.ts`：
 | `POST /api/save-document` | ✅ | ✅ | ✅ |
 | `POST /api/save-slide` | ✅ | ✅ | ✅ |
 | `POST /api/export` | ✅ | ✅ | ✅ |
+| `POST /api/upload-image` | ✅ | ✅ | ✅ |
+| `GET /api/assets/[taskId]/[filename]` | ✅（仅自己 guest） | ✅（仅自己） | ✅ |
 | `GET /api/tasks` | ✅（仅自己 guest） | ✅（仅自己） | ✅ |
 | `GET /api/tasks/[id]` | ✅（仅自己 guest） | ✅（仅自己） | ✅ |
 | `POST /api/generate` | ❌ 403 | ✅ 扣 1 点 | ✅ 扣 1 点 |
@@ -301,7 +311,7 @@ Prompt 构建在 `core/llm/prompt.ts`：
 | 目标 | 文件 |
 |---|---|
 | 新增/修改配色主题 | `components/templates/shared/theme.ts` + `core/schema/request.schema.ts` |
-| 新增 slide 类型 | `core/schema/request.schema.ts` → `components/templates/shared/{xxx}-card.tsx` → `core/render/map-slide-to-component.tsx` → `components/editor/card-type-meta.ts` → `components/editor/card-editors/` |
+| 新增 slide 类型 | `core/schema/request.schema.ts` → `components/templates/shared/{xxx}-card.tsx` → `core/render/map-slide-to-component.tsx` → `components/editor/card-type-meta.ts` → `components/editor/card-editors/index.tsx` |
 | 修改 AI 生成风格 | `core/llm/prompt.ts` 中的 `TONE_MAP` / `NOTE_TYPE_MAP` / prompt 文本 |
 | 修改溢出检查规则 | `core/qa/overflow-check.ts` |
 | 修改卡片尺寸 | 只需改 `core/render/card-dimensions.ts`（`CARD_WIDTH` / `CARD_HEIGHT`）|
