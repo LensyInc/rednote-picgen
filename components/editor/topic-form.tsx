@@ -20,11 +20,19 @@ interface TopicFormProps {
   onSubmit: (data: GenerateRequest) => void;
   isLoading?: boolean;
   isLoggedIn?: boolean;
+  defaultFamily?: GenerateRequest["family"];
+  defaultTheme?: GenerateRequest["theme"];
 }
 
 const PAGE_COUNT_OPTIONS = [4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
-export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: TopicFormProps) {
+export function TopicForm({
+  onSubmit,
+  isLoading = false,
+  isLoggedIn = false,
+  defaultFamily = "classic",
+  defaultTheme = "template-a",
+}: TopicFormProps) {
   const [projectName, setProjectName] = React.useState("");
   const [topic, setTopic] = React.useState("");
   const [audience, setAudience] = React.useState("");
@@ -46,8 +54,8 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
       tone,
       noteType,
       pageCount,
-      family: "classic",
-      theme: "template-a",
+      family: defaultFamily,
+      theme: defaultTheme,
       includeRealImages,
       userOutline: userOutline.trim() ? userOutline.trim() : undefined,
     };

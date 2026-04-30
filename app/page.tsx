@@ -505,6 +505,8 @@ export default function HomePage() {
           isLoading={isGenerating}
           error={generateError}
           isLoggedIn={isLoggedIn}
+          defaultFamily={document.theme.family}
+          defaultTheme={document.theme.themeId}
         />
         <ManualStartDialog
           open={showManualDialog}
