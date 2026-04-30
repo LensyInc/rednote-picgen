@@ -186,10 +186,72 @@ function ImageTile({ slide, theme, className }: { slide: CardProps["slide"]; the
 
 function HighlightTile({ theme, children, className = "" }: { theme: Theme; children: ReactNode; className?: string }) {
   return (
-    <BentoTile theme={theme} tone="primary" className={className}>
-      <div className="flex h-full flex-col justify-between gap-5">
+    <BentoTile theme={theme} tone="primary" className={className || "col-span-6 row-span-1"}>
+      <div className="flex h-full items-center justify-between gap-5">
         <BentoBadge theme={theme} tone="primary">KEY</BentoBadge>
-        <BentoText theme={theme} tone="primary" strong>{children}</BentoText>
+        <div className="flex-1">
+          <BentoText theme={theme} tone="primary" strong>{children}</BentoText>
+        </div>
+      </div>
+    </BentoTile>
+  );
+}
+
+function TitleTile({
+  slide,
+  theme,
+  className = "col-span-6 row-span-1",
+  vertical = false,
+}: {
+  slide: CardProps["slide"];
+  theme: Theme;
+  className?: string;
+  vertical?: boolean;
+}) {
+  if (vertical) {
+    return (
+      <BentoTile theme={theme} tone="primary" className={className}>
+        <div className="flex h-full items-center justify-center gap-4">
+          <BentoBadge theme={theme} tone="primary">TITLE</BentoBadge>
+          <h2
+            className="font-black tracking-[0.1em]"
+            style={{
+              color: theme.primaryText,
+              fontSize: scaledPx(42),
+              lineHeight: 1.05,
+              writingMode: "vertical-rl",
+            }}
+          >
+            {slide.title}
+          </h2>
+        </div>
+      </BentoTile>
+    );
+  }
+
+  return (
+    <BentoTile theme={theme} tone="primary" className={className}>
+      <div className="flex h-full items-center justify-between gap-6">
+        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
+        {slide.subtitle && (
+          <p
+            className="max-w-[42%] font-semibold leading-[1.35]"
+            style={{ color: theme.primaryText, fontSize: scaledPx(28) }}
+          >
+            {slide.subtitle}
+          </p>
+        )}
+      </div>
+    </BentoTile>
+  );
+}
+
+function SubtitleTile({ slide, theme, className = "col-span-3 row-span-1" }: { slide: CardProps["slide"]; theme: Theme; className?: string }) {
+  if (!slide.subtitle) return null;
+  return (
+    <BentoTile theme={theme} tone="soft" className={className}>
+      <div className="flex h-full items-center">
+        <BentoText theme={theme} strong>{slide.subtitle}</BentoText>
       </div>
     </BentoTile>
   );
@@ -257,14 +319,9 @@ export function TextCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento text">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-2">
-        <div className="flex h-full flex-col justify-between gap-4">
-          <BentoTitle theme={theme} tone="primary">{slide.title}</BentoTitle>
-          {slide.subtitle && <BentoText theme={theme} tone="primary">{slide.subtitle}</BentoText>}
-        </div>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       <BulletTiles theme={theme} bullets={slide.bullets} />
-      {slide.highlight && <HighlightTile theme={theme} className="col-span-6 row-span-1">{slide.highlight}</HighlightTile>}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -274,12 +331,9 @@ export function TextImageCard(props: CardProps) {
   return (
     <BentoShell {...props} category="bento image">
       <ImageTile slide={slide} theme={theme} className="col-span-3 row-span-3" />
-      <BentoTile theme={theme} tone="primary" className="col-span-3 row-span-2">
-        <BentoTitle theme={theme} tone="primary">{slide.title}</BentoTitle>
-      </BentoTile>
-      <BentoTile theme={theme} tone="soft" className="col-span-3 row-span-1">
-        <BentoText theme={theme} strong>{slide.subtitle || slide.highlight || "图文重点"}</BentoText>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} className="col-span-3 row-span-1" vertical />
+      <SubtitleTile slide={slide} theme={theme} className="col-span-3 row-span-1" />
+      {slide.highlight && <HighlightTile theme={theme} className="col-span-3 row-span-1">{slide.highlight}</HighlightTile>}
       <BulletTiles theme={theme} bullets={slide.bullets.slice(0, 4)} />
     </BentoShell>
   );
@@ -289,11 +343,9 @@ export function SummaryCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento summary">
-      <BentoTile theme={theme} tone="primary" className="col-span-3 row-span-2">
-        <BentoTitle theme={theme} tone="primary">{slide.title}</BentoTitle>
-      </BentoTile>
-      {slide.highlight && <HighlightTile theme={theme} className="col-span-3 row-span-2">{slide.highlight}</HighlightTile>}
+      <TitleTile slide={slide} theme={theme} />
       <BulletTiles theme={theme} bullets={slide.bullets} />
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -302,14 +354,15 @@ export function CTACard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento action">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-4">
-        <div className="flex h-full flex-col items-center justify-center gap-8 text-center">
+      <TitleTile slide={slide} theme={theme} />
+      <BentoTile theme={theme} tone="primary" className="col-span-4 row-span-2">
+        <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
           <BentoBadge theme={theme} tone="primary">ACTION</BentoBadge>
-          <BentoTitle theme={theme} tone="primary" size="xl">{slide.title}</BentoTitle>
-          {slide.subtitle && <BentoText theme={theme} tone="primary">{slide.subtitle}</BentoText>}
+          <BentoText theme={theme} tone="primary" strong>{slide.highlight ? "查看重点提示" : slide.subtitle || "下一步行动"}</BentoText>
         </div>
       </BentoTile>
       <BulletTiles theme={theme} bullets={slide.bullets.slice(0, 2)} />
+      {slide.highlight && <HighlightTile theme={theme} className="col-span-2 row-span-1">{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -330,6 +383,7 @@ export function QuoteCard(props: CardProps) {
         <BentoText theme={theme} strong>{slide.subtitle || "摘录"}</BentoText>
       </BentoTile>
       <BulletTiles theme={theme} bullets={slide.bullets.slice(0, 2)} />
+      {slide.highlight && <HighlightTile theme={theme} className="col-span-2 row-span-1">{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -338,11 +392,9 @@ export function TipsCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento tips">
-      <BentoTile theme={theme} tone="primary" className="col-span-2 row-span-2">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       <BulletTiles theme={theme} bullets={slide.bullets} />
-      {slide.highlight && <HighlightTile theme={theme} className="col-span-4 row-span-1">{slide.highlight}</HighlightTile>}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -353,9 +405,7 @@ export function ComparisonCard(props: CardProps) {
   const isAB = slide.comparisonStyle === "ab";
   return (
     <BentoShell {...props} category="bento compare">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-1">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       <BentoTile theme={theme} tone="soft" className="col-span-3 row-span-3">
         <BentoBadge theme={theme}>{slide.labelLeft || (isAB ? "方案 A" : "推荐")}</BentoBadge>
         <div className="mt-5 flex flex-col gap-4">
@@ -368,6 +418,7 @@ export function ComparisonCard(props: CardProps) {
           {slide.bullets.slice(mid).map((item, index) => <BentoText key={index} theme={theme}>{item}</BentoText>)}
         </div>
       </BentoTile>
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -376,11 +427,9 @@ export function StepCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento steps">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-1">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       <BulletTiles theme={theme} bullets={slide.bullets} />
-      {slide.highlight && <HighlightTile theme={theme} className="col-span-6 row-span-1">{slide.highlight}</HighlightTile>}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -390,9 +439,7 @@ export function StatsCard(props: CardProps) {
   const stats = slide.bullets.map(parseStat);
   return (
     <BentoShell {...props} category="bento stats">
-      <BentoTile theme={theme} tone="primary" className="col-span-3 row-span-2">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       {stats.map((stat, index) => (
         <BentoTile key={index} theme={theme} className={index === 0 ? "col-span-3 row-span-2" : "col-span-2 row-span-1"} tone={index % 2 === 0 ? "soft" : "surface"}>
           <span className="font-black leading-none" style={{ color: theme.primary, fontSize: scaledPx(index === 0 ? 86 : 58) }}>
@@ -401,6 +448,7 @@ export function StatsCard(props: CardProps) {
           <BentoText theme={theme}>{stat.label}</BentoText>
         </BentoTile>
       ))}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -410,15 +458,14 @@ export function FaqCard(props: CardProps) {
   const items = slide.bullets.map(splitQA);
   return (
     <BentoShell {...props} category="bento faq">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-1">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       {items.map((item, index) => (
         <BentoTile key={index} theme={theme} className="col-span-3 row-span-1" tone={index % 2 === 0 ? "surface" : "soft"}>
           <BentoText theme={theme} strong>Q: {item.q}</BentoText>
           {item.a && <div className="mt-3"><BentoText theme={theme}>A: {item.a}</BentoText></div>}
         </BentoTile>
       ))}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -427,9 +474,7 @@ export function ChecklistCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento checklist">
-      <BentoTile theme={theme} tone="primary" className="col-span-3 row-span-2">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       {slide.bullets.map((item, index) => (
         <BentoTile key={index} theme={theme} className="col-span-3 row-span-1">
           <div className="flex items-start gap-4">
@@ -443,6 +488,7 @@ export function ChecklistCard(props: CardProps) {
           </div>
         </BentoTile>
       ))}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -451,15 +497,14 @@ export function TimelineCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento timeline">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-1">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       {slide.bullets.map((item, index) => (
         <BentoTile key={index} theme={theme} className="col-span-3 row-span-1" tone={index % 2 === 0 ? "soft" : "surface"}>
           <BentoBadge theme={theme}>{String(index + 1).padStart(2, "0")}</BentoBadge>
           <div className="mt-4"><BentoText theme={theme}>{item}</BentoText></div>
         </BentoTile>
       ))}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
@@ -468,15 +513,13 @@ export function ProseCard(props: CardProps) {
   const { slide, theme } = props;
   return (
     <BentoShell {...props} category="bento prose">
-      <BentoTile theme={theme} tone="primary" className="col-span-6 row-span-1">
-        <BentoTitle theme={theme} tone="primary" size="md">{slide.title}</BentoTitle>
-      </BentoTile>
+      <TitleTile slide={slide} theme={theme} />
       {slide.bullets.map((paragraph, index) => (
         <BentoTile key={index} theme={theme} className={index === 0 ? "col-span-6 row-span-2" : "col-span-3 row-span-1"} tone={index % 2 === 0 ? "surface" : "soft"}>
           <BentoText theme={theme}>{paragraph}</BentoText>
         </BentoTile>
       ))}
-      {slide.highlight && <HighlightTile theme={theme} className="col-span-6 row-span-1">{slide.highlight}</HighlightTile>}
+      {slide.highlight && <HighlightTile theme={theme}>{slide.highlight}</HighlightTile>}
     </BentoShell>
   );
 }
