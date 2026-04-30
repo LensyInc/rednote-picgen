@@ -23,7 +23,7 @@ export const templateEnum = z.enum([
   "template-h",
 ]);
 
-export const familyEnum = z.enum(["classic", "magazine"]);
+export const familyEnum = z.enum(["classic", "magazine", "bigtype"]);
 export const slideTypeEnum = z.enum([
   "cover",
   "content",
