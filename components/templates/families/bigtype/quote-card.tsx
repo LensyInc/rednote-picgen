@@ -26,7 +26,7 @@ export function QuoteCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
               marginBottom: -20,
             }}
           >
-            "
+            &ldquo;
           </span>
 
           <blockquote

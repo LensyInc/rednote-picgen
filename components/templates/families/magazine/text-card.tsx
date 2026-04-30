@@ -1,16 +1,10 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
-import { type CardProps, scaledPx } from "@/components/templates/themes/theme";
-import { MagHeader, MagDivider, MagHighlight, MagPageBadge } from "./mag-atoms";
+import { type CardProps, type Theme, scaledPx } from "@/components/templates/themes/theme";
+import { MagHeader, MagHighlight, MagPageBadge } from "./mag-atoms";
 
-export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
-  const bullets = slide.bullets;
-  const mid = Math.ceil(bullets.length / 2);
-  const useTwoCols = bullets.length > 4;
-  const colA = useTwoCols ? bullets.slice(0, mid) : bullets;
-  const colB = useTwoCols ? bullets.slice(mid) : [];
-
-  const BulletList = ({ items }: { items: string[] }) => (
+function BulletList({ items, theme }: { items: string[]; theme: Theme }) {
+  return (
     <ul className="flex flex-col">
       {items.map((b, i) => (
         <li
@@ -34,6 +28,14 @@ export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
       ))}
     </ul>
   );
+}
+
+export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
+  const bullets = slide.bullets;
+  const mid = Math.ceil(bullets.length / 2);
+  const useTwoCols = bullets.length > 4;
+  const colA = useTwoCols ? bullets.slice(0, mid) : bullets;
+  const colB = useTwoCols ? bullets.slice(mid) : [];
 
   return (
     <CardContainer theme={theme} backgroundType={backgroundType} fontScale={fontScale}>
@@ -61,18 +63,18 @@ export function TextCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
           {useTwoCols ? (
             <div className="flex h-full gap-10">
               <div className="flex-1">
-                <BulletList items={colA} />
+                <BulletList items={colA} theme={theme} />
               </div>
               <div
                 className="shrink-0"
                 style={{ width: 1, backgroundColor: theme.divider }}
               />
               <div className="flex-1">
-                <BulletList items={colB} />
+                <BulletList items={colB} theme={theme} />
               </div>
             </div>
           ) : (
-            <BulletList items={colA} />
+            <BulletList items={colA} theme={theme} />
           )}
         </div>
 

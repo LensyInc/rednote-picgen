@@ -2,11 +2,8 @@ import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
 import { type CardProps, scaledPx } from "@/components/templates/themes/theme";
 import { MagHighlight, MagPageBadge } from "./mag-atoms";
-import { proxyImageUrl } from "@/lib/proxy-image";
 
 export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
-  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
-
   return (
     <CardContainer theme={theme} backgroundType={backgroundType} fontScale={fontScale}>
       {/* 顶部编辑栏 */}

@@ -24,7 +24,7 @@ export function QuoteCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
               className="font-black leading-none"
               style={{ color: theme.primary, fontSize: scaledPx(100), lineHeight: 0.8 }}
             >
-              "
+              &ldquo;
             </span>
             <h2
               className="font-black leading-[1.15] tracking-tight"

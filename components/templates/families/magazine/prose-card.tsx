@@ -1,18 +1,11 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
-import { type CardProps, scaledPx } from "@/components/templates/themes/theme";
+import { type CardProps, type Theme, scaledPx } from "@/components/templates/themes/theme";
 import { MagHighlight, MagPageBadge } from "./mag-atoms";
 import { proxyImageUrl } from "@/lib/proxy-image";
 
-export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
-  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
-  const hasImage = !!imgSrc;
-  const useTwoCols = !hasImage && slide.bullets.length > 3;
-  const mid = Math.ceil(slide.bullets.length / 2);
-  const colA = useTwoCols ? slide.bullets.slice(0, mid) : slide.bullets;
-  const colB = useTwoCols ? slide.bullets.slice(mid) : [];
-
-  const ParagraphList = ({ items }: { items: string[] }) => (
+function ParagraphList({ items, theme }: { items: string[]; theme: Theme }) {
+  return (
     <div className="flex flex-col gap-1">
       {items.map((b, i) => (
         <p
@@ -32,6 +25,15 @@ export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
       ))}
     </div>
   );
+}
+
+export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+  const useTwoCols = !hasImage && slide.bullets.length > 3;
+  const mid = Math.ceil(slide.bullets.length / 2);
+  const colA = useTwoCols ? slide.bullets.slice(0, mid) : slide.bullets;
+  const colB = useTwoCols ? slide.bullets.slice(mid) : [];
 
   return (
     <CardContainer theme={theme} backgroundType={backgroundType} fontScale={fontScale}>
@@ -73,7 +75,7 @@ export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
                 {slide.title}
               </h2>
             )}
-            <ParagraphList items={slide.bullets} />
+            <ParagraphList items={slide.bullets} theme={theme} />
             {slide.highlight && <MagHighlight theme={theme}>{slide.highlight}</MagHighlight>}
           </div>
         </div>
@@ -90,16 +92,16 @@ export function ProseCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
           {useTwoCols ? (
             <div className="flex flex-1 gap-10">
               <div className="flex-1">
-                <ParagraphList items={colA} />
+                <ParagraphList items={colA} theme={theme} />
               </div>
               <div className="shrink-0" style={{ width: 1, backgroundColor: theme.divider }} />
               <div className="flex-1">
-                <ParagraphList items={colB} />
+                <ParagraphList items={colB} theme={theme} />
               </div>
             </div>
           ) : (
             <div className="flex-1">
-              <ParagraphList items={colA} />
+              <ParagraphList items={colA} theme={theme} />
             </div>
           )}
           {slide.highlight && <MagHighlight theme={theme}>{slide.highlight}</MagHighlight>}

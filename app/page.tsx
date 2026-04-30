@@ -15,7 +15,7 @@ import { usePlanType } from "@/lib/use-plan-type";
 import { fetchWithAuth } from "@/lib/fetch-with-auth";
 import { ensureGuestId } from "@/lib/guest-id";
 import { NoteDocument, Slide } from "@/core/schema/note.schema";
-import { GenerateRequest } from "@/core/schema/request.schema";
+import { GenerateRequest, type FamilyId } from "@/core/schema/request.schema";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverItem } from "@/components/ui/popover";
 import {
@@ -379,9 +379,18 @@ export default function HomePage() {
   }
 
   function handleFamilyChange(familyId: string) {
+    const family = getFamilyList().find((f) => f.id === familyId);
+    const themeId = (family?.defaultTheme || document.theme.themeId) as TemplateId;
+    const theme = THEMES[themeId] || THEMES[document.theme.themeId];
     setDocument({
       ...document,
-      theme: { ...document.theme, family: familyId as "classic" },
+      theme: {
+        ...document.theme,
+        family: familyId as FamilyId,
+        themeId,
+        primaryColor: theme.primary,
+        secondaryColor: theme.surfaceSoft,
+      },
     });
   }
 
@@ -601,8 +610,6 @@ export default function HomePage() {
                 选择模板
               </div>
               {getFamilyList().map((f) => {
-                const locked = f.requiresPro && !isLoggedIn;
-                const lockedPro = f.requiresPro && isLoggedIn;
                 return (
                   <PopoverItem
                     key={f.id}

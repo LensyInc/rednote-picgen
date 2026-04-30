@@ -3,24 +3,21 @@ import { CardContainer } from "@/components/templates/shared/card-container";
 import { type CardProps, scaledPx } from "@/components/templates/themes/theme";
 import { BtTopBar, BtHighlight } from "./bt-atoms";
 
-export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
-  const mid = Math.ceil(slide.bullets.length / 2);
-  const left = slide.bullets.slice(0, mid);
-  const right = slide.bullets.slice(mid);
-  const isAB = slide.comparisonStyle === "ab";
-
-  const leftLabel = slide.labelLeft?.trim() || (isAB ? "方案 A" : "推荐");
-  const rightLabel = slide.labelRight?.trim() || (isAB ? "方案 B" : "留意");
-  const leftMark = isAB ? "A" : "✓";
-  const rightMark = isAB ? "B" : "✕";
-  const leftColor = theme.primary;
-  const rightColor = isAB ? theme.accent : theme.textMuted;
-
-  const Column = ({
-    mark, label, color, items,
-  }: { mark: string; label: string; color: string; items: string[] }) => (
+function ComparisonColumn({
+  mark,
+  label,
+  color,
+  items,
+  textColor,
+}: {
+  mark: string;
+  label: string;
+  color: string;
+  items: string[];
+  textColor: string;
+}) {
+  return (
     <div className="flex flex-1 flex-col gap-6">
-      {/* 超大标记 */}
       <div className="flex items-baseline gap-5">
         <span
           className="font-black leading-none"
@@ -44,7 +41,7 @@ export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTo
             />
             <p
               className="flex-1 font-medium leading-[1.4]"
-              style={{ color: theme.textBody, fontSize: scaledPx(34) }}
+              style={{ color: textColor, fontSize: scaledPx(34) }}
             >
               {b}
             </p>
@@ -53,6 +50,20 @@ export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTo
       </ul>
     </div>
   );
+}
+
+export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
+  const mid = Math.ceil(slide.bullets.length / 2);
+  const left = slide.bullets.slice(0, mid);
+  const right = slide.bullets.slice(mid);
+  const isAB = slide.comparisonStyle === "ab";
+
+  const leftLabel = slide.labelLeft?.trim() || (isAB ? "方案 A" : "推荐");
+  const rightLabel = slide.labelRight?.trim() || (isAB ? "方案 B" : "留意");
+  const leftMark = isAB ? "A" : "✓";
+  const rightMark = isAB ? "B" : "✕";
+  const leftColor = theme.primary;
+  const rightColor = isAB ? theme.accent : theme.textMuted;
 
   return (
     <CardContainer theme={theme} backgroundType={backgroundType} fontScale={fontScale}>
@@ -70,9 +81,9 @@ export function ComparisonCard({ slide, theme, backgroundType, pageIndex, pageTo
           </h2>
 
           <div className="flex flex-1 gap-0">
-            <Column mark={leftMark} label={leftLabel} color={leftColor} items={left} />
+            <ComparisonColumn mark={leftMark} label={leftLabel} color={leftColor} items={left} textColor={theme.textBody} />
             <div className="mx-8 self-stretch" style={{ width: 1, backgroundColor: theme.divider }} />
-            <Column mark={rightMark} label={rightLabel} color={rightColor} items={right} />
+            <ComparisonColumn mark={rightMark} label={rightLabel} color={rightColor} items={right} textColor={theme.textBody} />
           </div>
 
           {slide.highlight && <BtHighlight theme={theme}>{slide.highlight}</BtHighlight>}

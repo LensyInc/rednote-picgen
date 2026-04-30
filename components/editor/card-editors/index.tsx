@@ -84,7 +84,7 @@ function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
         const err = JSON.parse(text);
         setUploadError(err.error || "上传失败，请重试");
       }
-    } catch (e) {
+    } catch {
       setUploadError("上传失败，请重试");
     } finally {
       setUploading(false);

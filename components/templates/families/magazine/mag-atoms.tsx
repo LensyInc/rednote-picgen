@@ -1,5 +1,5 @@
-import type { ReactNode, CSSProperties } from "react";
-import { type Theme, radius, scaledPx, withAlpha } from "@/components/templates/themes/theme";
+import type { ReactNode } from "react";
+import { type Theme, radius, scaledPx } from "@/components/templates/themes/theme";
 
 /** 顶部细线 + 分类标签 + 标题 */
 export function MagHeader({

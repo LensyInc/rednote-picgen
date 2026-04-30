@@ -36,7 +36,7 @@ export function QuoteCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
             marginBottom: -40,
           }}
         >
-          "
+          &ldquo;
         </span>
 
         {/* 引用文字 */}

@@ -1,0 +1,48 @@
+import type { TemplateFamily } from "@/components/templates/shared-new/card-types";
+import {
+  CoverCard,
+  TextCard,
+  TextImageCard,
+  SummaryCard,
+  CTACard,
+  QuoteCard,
+  TipsCard,
+  ComparisonCard,
+  StepCard,
+  StatsCard,
+  FaqCard,
+  ChecklistCard,
+  TimelineCard,
+  ProseCard,
+} from "./index";
+
+export const paperFamily: TemplateFamily = {
+  id: "paper",
+  name: "手账纸",
+  description: "米白纸张、虚线边框与胶带折角，适合生活感内容",
+  requiresPro: true,
+  defaultTheme: "template-f",
+  supportsBackgrounds: ["solid", "gradient", "dots", "lines"],
+  capabilities: {
+    comparisonStyles: ["good-bad", "ab"],
+    imagePositions: ["top", "bottom", "background"],
+    maxBulletCount: 8,
+    supportsPageNumbers: true,
+  },
+  cards: {
+    CoverCard,
+    TextCard,
+    TextImageCard,
+    SummaryCard,
+    CTACard,
+    QuoteCard,
+    TipsCard,
+    ComparisonCard,
+    StepCard,
+    StatsCard,
+    FaqCard,
+    ChecklistCard,
+    TimelineCard,
+    ProseCard,
+  },
+};
