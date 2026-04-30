@@ -1,7 +1,7 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
 import { type CardProps, radius, scaledPx } from "@/components/templates/themes/theme";
-import { GdTopBar, GdHighlight } from "./grid-atoms";
+import { GdTopBar, GdCell, GdHighlight } from "./grid-atoms";
 
 function splitQA(text: string): { q: string; a: string } {
   const sep = ["？", "?", "|", "——", "—"];
@@ -34,15 +34,8 @@ export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal, fo
 
           <div className="flex flex-1 flex-col gap-4">
             {items.map((item, i) => (
-              <div
-                key={i}
-                className="flex flex-col gap-3 p-5"
-                style={{
-                  border: `1.5px solid ${theme.divider}`,
-                  borderRadius: radius(theme, "lg"),
-                  backgroundColor: theme.surface,
-                }}
-              >
+              <GdCell key={i} theme={theme} index={i}>
+                <div className="flex flex-col gap-3">
                 <div className="flex items-start gap-4">
                   <span
                     className="shrink-0 flex items-center justify-center font-black"
@@ -89,7 +82,8 @@ export function FaqCard({ slide, theme, backgroundType, pageIndex, pageTotal, fo
                     </p>
                   </div>
                 )}
-              </div>
+                </div>
+              </GdCell>
             ))}
           </div>
 

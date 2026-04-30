@@ -1,7 +1,7 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
-import { type CardProps, radius, scaledPx } from "@/components/templates/themes/theme";
-import { GdTopBar, GdHighlight } from "./grid-atoms";
+import { type CardProps, scaledPx } from "@/components/templates/themes/theme";
+import { GdTopBar, GdCell, GdHighlight } from "./grid-atoms";
 
 export function TimelineCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   return (
@@ -48,21 +48,15 @@ export function TimelineCard({ slide, theme, backgroundType, pageIndex, pageTota
                   )}
                 </div>
 
-                {/* Content cell */}
-                <div
-                  className="mb-4 flex-1 p-5"
-                  style={{
-                    border: `1.5px solid ${theme.divider}`,
-                    borderRadius: radius(theme, "lg"),
-                    backgroundColor: theme.surface,
-                  }}
-                >
+                <div className="mb-4 flex-1">
+                  <GdCell theme={theme} index={i}>
                   <p
                     className="font-medium leading-[1.45]"
                     style={{ color: theme.textBody, fontSize: scaledPx(38) }}
                   >
                     {b}
                   </p>
+                  </GdCell>
                 </div>
               </div>
             ))}

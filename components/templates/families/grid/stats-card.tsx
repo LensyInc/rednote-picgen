@@ -1,7 +1,7 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
-import { type CardProps, radius, scaledPx } from "@/components/templates/themes/theme";
-import { GdTopBar, GdHighlight } from "./grid-atoms";
+import { type CardProps, scaledPx } from "@/components/templates/themes/theme";
+import { GdTopBar, GdCell, GdHighlight } from "./grid-atoms";
 
 function parseStat(text: string): { value: string; label: string } {
   const match = text.match(/^\s*([\d.]+\s*[%万千亿+]*|[A-Za-z$¥€]+[\d.,]+[%KMB]?)\s*[:：\-—\s]+(.+)$/);
@@ -46,15 +46,8 @@ export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
             style={{ gridTemplateColumns: "1fr 1fr", alignContent: "start" }}
           >
             {items.map((item, i) => (
-              <div
-                key={i}
-                className="flex flex-col justify-between p-5"
-                style={{
-                  border: `1.5px solid ${theme.divider}`,
-                  borderRadius: radius(theme, "lg"),
-                  backgroundColor: theme.surface,
-                }}
-              >
+              <GdCell key={i} theme={theme} index={i}>
+                <div className="flex flex-col justify-between">
                 <span
                   className="font-black tabular-nums leading-none"
                   style={{ color: theme.primary, fontSize: scaledPx(80) }}
@@ -67,7 +60,8 @@ export function StatsCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
                 >
                   {item.label}
                 </p>
-              </div>
+                </div>
+              </GdCell>
             ))}
           </div>
 

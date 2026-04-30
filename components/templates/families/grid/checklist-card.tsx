@@ -1,7 +1,7 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
-import { type CardProps, radius, scaledPx } from "@/components/templates/themes/theme";
-import { GdTopBar, GdHighlight } from "./grid-atoms";
+import { type CardProps, radius, scaledPx, withAlpha } from "@/components/templates/themes/theme";
+import { GdTopBar, GdCell, GdHighlight } from "./grid-atoms";
 
 export function ChecklistCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   return (
@@ -30,22 +30,16 @@ export function ChecklistCard({ slide, theme, backgroundType, pageIndex, pageTot
             style={{ gridTemplateColumns: "1fr 1fr", alignContent: "start" }}
           >
             {slide.bullets.map((b, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-4 p-4"
-                style={{
-                  border: `1.5px solid ${theme.divider}`,
-                  borderRadius: radius(theme, "lg"),
-                  backgroundColor: theme.surface,
-                }}
-              >
+              <GdCell key={i} theme={theme} index={i}>
+                <div className="flex items-start gap-4">
                 <span
                   className="shrink-0 flex items-center justify-center font-black"
                   style={{
                     width: 36,
                     height: 36,
-                    backgroundColor: theme.primary,
-                    color: theme.primaryText,
+                    backgroundColor: withAlpha(theme.primary, 0.12),
+                    color: theme.primary,
+                    border: `2px solid ${theme.primary}`,
                     borderRadius: radius(theme, "sm"),
                     fontSize: scaledPx(26),
                     flexShrink: 0,
@@ -60,7 +54,8 @@ export function ChecklistCard({ slide, theme, backgroundType, pageIndex, pageTot
                 >
                   {b}
                 </p>
-              </div>
+                </div>
+              </GdCell>
             ))}
           </div>
 

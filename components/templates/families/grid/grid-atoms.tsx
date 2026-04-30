@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { type Theme, radius, scaledPx, withAlpha } from "@/components/templates/themes/theme";
-import { CARD_HEIGHT } from "@/core/render/card-dimensions";
 
 export function GdTopBar({
   theme,
@@ -15,21 +14,6 @@ export function GdTopBar({
 }) {
   return (
     <div className="relative shrink-0 flex flex-col px-20">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-0"
-        style={{
-          height: CARD_HEIGHT,
-          backgroundImage: [
-            `linear-gradient(${withAlpha(theme.divider, 0.42)} 1px, transparent 1px)`,
-            `linear-gradient(90deg, ${withAlpha(theme.divider, 0.42)} 1px, transparent 1px)`,
-            `linear-gradient(${withAlpha(theme.primary, 0.12)} 2px, transparent 2px)`,
-            `linear-gradient(90deg, ${withAlpha(theme.primary, 0.12)} 2px, transparent 2px)`,
-          ].join(", "),
-          backgroundSize: "76px 76px, 76px 76px, 304px 304px, 304px 304px",
-          backgroundPosition: "0 0, 0 0, 0 0, 0 0",
-          opacity: theme.mood === "dark" ? 0.35 : 0.55,
-        }}
-      />
       <div className="relative z-10 flex items-center justify-between py-12">
         <div className="flex items-center gap-4">
           <span
@@ -81,25 +65,14 @@ export function GdCell({
 }) {
   return (
     <div
-      className="relative flex flex-col overflow-hidden p-5"
+      className="relative flex flex-col overflow-hidden p-0"
       style={{
         border: `2px solid ${theme.divider}`,
         borderRadius: radius(theme, "sm"),
-        backgroundColor: withAlpha(theme.surface, theme.mood === "dark" ? 0.86 : 0.92),
-        boxShadow: `inset 0 0 0 1px ${withAlpha(theme.primary, 0.08)}`,
+        backgroundColor: theme.surface,
+        boxShadow: `inset 0 0 0 1px ${withAlpha(theme.primary, 0.1)}`,
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: [
-            `linear-gradient(${withAlpha(theme.divider, 0.36)} 1px, transparent 1px)`,
-            `linear-gradient(90deg, ${withAlpha(theme.divider, 0.36)} 1px, transparent 1px)`,
-          ].join(", "),
-          backgroundSize: "38px 38px",
-          opacity: 0.6,
-        }}
-      />
       <div
         className="pointer-events-none absolute right-0 top-0"
         style={{
@@ -110,15 +83,29 @@ export function GdCell({
           backgroundColor: theme.surfaceSoft,
         }}
       />
+      <div
+        className="flex min-h-8 items-center border-b px-4 py-2"
+        style={{
+          borderColor: theme.divider,
+          backgroundColor: withAlpha(theme.surfaceSoft, theme.mood === "dark" ? 0.5 : 0.78),
+        }}
+      >
+        <span
+          className="font-black tabular-nums tracking-[0.1em]"
+          style={{ color: theme.primary, fontSize: scaledPx(18) }}
+        >
+          {index != null ? `GRID-${String(index + 1).padStart(2, "0")}` : "GRID-CELL"}
+        </span>
+      </div>
       {index != null && (
         <span
-          className="relative z-10 shrink-0 font-black tabular-nums mb-3 tracking-[0.08em]"
-          style={{ color: theme.primary, fontSize: scaledPx(22) }}
+          className="absolute bottom-3 right-4 z-10 font-black tabular-nums leading-none"
+          style={{ color: withAlpha(theme.primary, 0.16), fontSize: scaledPx(54) }}
         >
-          GRID-{String(index + 1).padStart(2, "0")}
+          {String(index + 1).padStart(2, "0")}
         </span>
       )}
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 p-5">{children}</div>
     </div>
   );
 }
@@ -132,22 +119,28 @@ export function GdHighlight({
 }) {
   return (
     <div
-      className="relative shrink-0 overflow-hidden px-6 py-5"
+      className="relative shrink-0 overflow-hidden p-0"
       style={{
-        backgroundColor: withAlpha(theme.surfaceSoft, 0.94),
+        backgroundColor: theme.surface,
         border: `2px solid ${theme.primary}`,
         borderRadius: radius(theme, "sm"),
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0"
+      <div className="flex border-b"
         style={{
-          width: 76,
-          backgroundImage: `repeating-linear-gradient(0deg, ${withAlpha(theme.primary, 0.18)} 0 1px, transparent 1px 19px)`,
+          borderColor: theme.primary,
+          backgroundColor: withAlpha(theme.primary, 0.1),
         }}
-      />
+      >
+        <span
+          className="px-4 py-2 font-black tracking-[0.1em]"
+          style={{ color: theme.primary, fontSize: scaledPx(18) }}
+        >
+          HIGHLIGHT
+        </span>
+      </div>
       <p
-        className="relative z-10 pl-16 font-semibold leading-[1.4]"
+        className="relative z-10 p-5 font-semibold leading-[1.4]"
         style={{ color: theme.textStrong, fontSize: scaledPx(34) }}
       >
         {children}

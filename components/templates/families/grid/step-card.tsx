@@ -1,7 +1,7 @@
 import type React from "react";
 import { CardContainer } from "@/components/templates/shared/card-container";
 import { type CardProps, radius, scaledPx } from "@/components/templates/themes/theme";
-import { GdTopBar, GdHighlight } from "./grid-atoms";
+import { GdTopBar, GdCell, GdHighlight } from "./grid-atoms";
 
 export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   return (
@@ -27,15 +27,8 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
 
           <div className="flex flex-1 flex-col gap-3">
             {slide.bullets.map((b, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-5 p-5"
-                style={{
-                  border: `1.5px solid ${theme.divider}`,
-                  borderRadius: radius(theme, "lg"),
-                  backgroundColor: theme.surface,
-                }}
-              >
+              <GdCell key={i} theme={theme} index={i}>
+                <div className="flex items-start gap-5">
                 <span
                   className="shrink-0 flex items-center justify-center font-black tabular-nums"
                   style={{
@@ -56,7 +49,8 @@ export function StepCard({ slide, theme, backgroundType, pageIndex, pageTotal, f
                 >
                   {b}
                 </p>
-              </div>
+                </div>
+              </GdCell>
             ))}
           </div>
 
