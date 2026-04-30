@@ -34,6 +34,13 @@ function PaperShell({
           }}
         />
         <div
+          className="absolute bottom-12 right-20 z-20 h-8 w-44 rotate-[4deg]"
+          style={{
+            backgroundColor: withAlpha(theme.primary, 0.16),
+            border: `1px dashed ${withAlpha(theme.primary, 0.45)}`,
+          }}
+        />
+        <div
           className="absolute right-16 top-20 z-20 h-24 w-24"
           style={{
             background: `linear-gradient(135deg, transparent 0 50%, ${withAlpha(theme.accent, 0.36)} 51% 100%)`,
@@ -49,9 +56,30 @@ function PaperShell({
           }}
         >
           <div
+            className="pointer-events-none absolute bottom-0 left-24 top-0 w-1"
+            style={{ backgroundColor: withAlpha(theme.primary, 0.28) }}
+          />
+          <div className="pointer-events-none absolute bottom-0 left-4 top-0 flex flex-col justify-around py-16">
+            {Array.from({ length: 9 }).map((_, index) => (
+              <span
+                key={index}
+                className="h-5 w-5 rounded-full"
+                style={{
+                  backgroundColor: theme.background,
+                  border: `1px solid ${withAlpha(theme.primary, 0.26)}`,
+                  boxShadow: `inset 0 2px 4px ${withAlpha(theme.textStrong, 0.12)}`,
+                }}
+              />
+            ))}
+          </div>
+          <div
             className="pointer-events-none absolute inset-0"
             style={{
-              backgroundImage: `repeating-linear-gradient(0deg, transparent 0 57px, ${withAlpha(theme.divider, 0.55)} 58px 59px)`,
+              backgroundImage: [
+                `repeating-linear-gradient(0deg, transparent 0 57px, ${withAlpha(theme.divider, 0.48)} 58px 59px)`,
+                `radial-gradient(${withAlpha(theme.textStrong, 0.1)} 1px, transparent 1px)`,
+              ].join(", "),
+              backgroundSize: "auto, 34px 34px",
             }}
           />
           <PaperHeader theme={theme} category={category} pageIndex={pageIndex} pageTotal={pageTotal} />
@@ -75,12 +103,22 @@ function PaperHeader({
 }) {
   return (
     <div className="relative z-10 mb-8 flex shrink-0 items-center justify-between">
-      <span
-        className="font-wenkai font-bold tracking-[0.16em]"
-        style={{ color: theme.primary, fontSize: scaledPx(24) }}
-      >
-        {category}
-      </span>
+      <div className="flex items-center gap-4">
+        <span
+          className="h-8 w-8 rotate-[-8deg]"
+          style={{
+            backgroundColor: withAlpha(theme.accent, 0.65),
+            border: `2px solid ${withAlpha(theme.primary, 0.35)}`,
+            borderRadius: radius(theme, "sm"),
+          }}
+        />
+        <span
+          className="font-wenkai font-bold tracking-[0.16em]"
+          style={{ color: theme.primary, fontSize: scaledPx(24) }}
+        >
+          {category}
+        </span>
+      </div>
       {pageIndex != null && pageTotal != null && (
         <span
           className="font-wenkai font-bold tabular-nums"
@@ -105,8 +143,14 @@ function PaperTitle({
   const fontSize = size === "xl" ? 116 : size === "lg" ? 88 : 72;
   return (
     <h2
-      className="font-wenkai font-black leading-[1.08]"
-      style={{ color: theme.textStrong, fontSize: scaledPx(fontSize) }}
+      className="relative z-10 w-fit font-wenkai font-black leading-[1.08]"
+      style={{
+        color: theme.textStrong,
+        fontSize: scaledPx(fontSize),
+        textDecoration: `underline ${withAlpha(theme.accent, 0.5)} 18px`,
+        textUnderlineOffset: "-10px",
+        textDecorationSkipInk: "none",
+      }}
     >
       {children}
     </h2>
@@ -130,30 +174,54 @@ function PaperNote({
   children,
   index,
   compact = false,
+  tilt = 0,
 }: {
   theme: Theme;
   children: ReactNode;
   index?: number;
   compact?: boolean;
+  tilt?: number;
 }) {
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative overflow-visible"
       style={{
-        backgroundColor: withAlpha(theme.surfaceSoft, theme.mood === "dark" ? 0.5 : 0.72),
-        border: `2px dashed ${withAlpha(theme.primary, 0.38)}`,
-        borderRadius: radius(theme, "md"),
+        transform: `rotate(${tilt}deg)`,
       }}
     >
+      <span
+        className="absolute left-1/2 top-[-12px] z-20 h-7 w-28 -translate-x-1/2 rotate-[-2deg]"
+        style={{
+          backgroundColor: withAlpha(theme.accent, 0.44),
+          border: `1px dashed ${withAlpha(theme.primary, 0.38)}`,
+        }}
+      />
+      <div
+        className="relative overflow-hidden"
+        style={{
+          backgroundColor: withAlpha(theme.surfaceSoft, theme.mood === "dark" ? 0.5 : 0.82),
+          border: `2px dashed ${withAlpha(theme.primary, 0.48)}`,
+          borderRadius: radius(theme, "md"),
+          boxShadow: `6px 8px 0 ${withAlpha(theme.primary, 0.1)}`,
+        }}
+      >
       {index != null && (
         <span
-          className="absolute right-4 top-2 font-wenkai font-black tabular-nums"
-          style={{ color: withAlpha(theme.primary, 0.32), fontSize: scaledPx(42), lineHeight: 1 }}
+          className="absolute right-3 top-3 z-10 rotate-[5deg] px-3 py-1 font-wenkai font-black tabular-nums"
+          style={{
+            color: theme.primary,
+            backgroundColor: paperColor(theme),
+            border: `1px solid ${withAlpha(theme.primary, 0.35)}`,
+            borderRadius: radius(theme, "sm"),
+            fontSize: scaledPx(22),
+            lineHeight: 1,
+          }}
         >
           {String(index + 1).padStart(2, "0")}
         </span>
       )}
       <div className={compact ? "relative z-10 p-4" : "relative z-10 p-6"}>{children}</div>
+      </div>
     </div>
   );
 }
@@ -172,13 +240,18 @@ function PaperText({ theme, children, strong = false }: { theme: Theme; children
 function PaperHighlight({ theme, children }: { theme: Theme; children: ReactNode }) {
   return (
     <div
-      className="relative shrink-0 px-7 py-5"
+      className="relative shrink-0 rotate-[-1deg] px-7 py-5"
       style={{
-        backgroundColor: withAlpha(theme.accent, 0.2),
-        borderLeft: `8px solid ${theme.primary}`,
+        backgroundColor: withAlpha(theme.accent, 0.3),
+        border: `2px dashed ${theme.primary}`,
         borderRadius: radius(theme, "md"),
+        boxShadow: `5px 6px 0 ${withAlpha(theme.primary, 0.1)}`,
       }}
     >
+      <span
+        className="absolute -top-3 left-8 h-6 w-24 rotate-[3deg]"
+        style={{ backgroundColor: withAlpha(theme.primary, 0.18) }}
+      />
       <PaperText theme={theme} strong>{children}</PaperText>
     </div>
   );
@@ -188,7 +261,7 @@ function PaperBulletList({ theme, bullets }: { theme: Theme; bullets: string[] }
   return (
     <div className="flex flex-col gap-4">
       {bullets.map((bullet, index) => (
-        <PaperNote key={index} theme={theme} index={index}>
+        <PaperNote key={index} theme={theme} index={index} tilt={index % 2 === 0 ? -0.7 : 0.7}>
           <PaperText theme={theme}>{bullet}</PaperText>
         </PaperNote>
       ))}
@@ -200,7 +273,7 @@ function PaperBulletGrid({ theme, bullets }: { theme: Theme; bullets: string[] }
   return (
     <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
       {bullets.map((bullet, index) => (
-        <PaperNote key={index} theme={theme} index={index} compact>
+        <PaperNote key={index} theme={theme} index={index} compact tilt={index % 2 === 0 ? -1 : 1}>
           <PaperText theme={theme}>{bullet}</PaperText>
         </PaperNote>
       ))}
@@ -268,12 +341,27 @@ export function CoverCard(props: CardProps) {
   return (
     <PaperShell {...props} category="手账封面">
       <div className="flex flex-1 flex-col justify-center gap-9">
+        <div className="flex items-start justify-between gap-6">
         <div className="w-fit rotate-[-2deg]">
           <PaperNote theme={theme}>
             <span className="font-wenkai font-bold tracking-[0.12em]" style={{ color: theme.primary, fontSize: scaledPx(26) }}>
               NOTEBOOK
             </span>
           </PaperNote>
+        </div>
+          <div
+            className="rotate-[4deg] px-5 py-4 text-center font-wenkai font-black"
+            style={{
+              color: theme.primary,
+              border: `3px double ${theme.primary}`,
+              borderRadius: radius(theme, "md"),
+              fontSize: scaledPx(28),
+            }}
+          >
+            DAILY
+            <br />
+            MEMO
+          </div>
         </div>
         <PaperTitle theme={theme} size="xl">{slide.title}</PaperTitle>
         <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
@@ -381,13 +469,13 @@ export function ComparisonCard(props: CardProps) {
       <div className="flex flex-1 flex-col gap-6">
         <PaperTitle theme={theme} size="md">{slide.title}</PaperTitle>
         <div className="grid flex-1 gap-5" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <PaperNote theme={theme}>
+          <PaperNote theme={theme} tilt={-1}>
             <PaperText theme={theme} strong>{slide.labelLeft || (isAB ? "方案 A" : "推荐")}</PaperText>
             <div className="mt-4 flex flex-col gap-3">
               {left.map((item, index) => <PaperText key={index} theme={theme}>{item}</PaperText>)}
             </div>
           </PaperNote>
-          <PaperNote theme={theme}>
+          <PaperNote theme={theme} tilt={1}>
             <PaperText theme={theme} strong>{slide.labelRight || (isAB ? "方案 B" : "留意")}</PaperText>
             <div className="mt-4 flex flex-col gap-3">
               {right.map((item, index) => <PaperText key={index} theme={theme}>{item}</PaperText>)}
@@ -424,7 +512,7 @@ export function StatsCard(props: CardProps) {
         <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
         <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
           {stats.map((stat, index) => (
-            <PaperNote key={index} theme={theme} index={index}>
+            <PaperNote key={index} theme={theme} index={index} tilt={index % 2 === 0 ? -1 : 1}>
               <span className="font-wenkai font-black leading-none" style={{ color: theme.primary, fontSize: scaledPx(76) }}>
                 {stat.value || `0${index + 1}`}
               </span>
@@ -445,7 +533,7 @@ export function FaqCard(props: CardProps) {
       <div className="flex flex-1 flex-col gap-5">
         <PaperTitle theme={theme} size="md">{slide.title}</PaperTitle>
         {items.map((item, index) => (
-          <PaperNote key={index} theme={theme} index={index}>
+          <PaperNote key={index} theme={theme} index={index} tilt={index % 2 === 0 ? -0.8 : 0.8}>
             <PaperText theme={theme} strong>Q：{item.q}</PaperText>
             {item.a && <div className="mt-3"><PaperText theme={theme}>A：{item.a}</PaperText></div>}
           </PaperNote>
@@ -464,7 +552,7 @@ export function ChecklistCard(props: CardProps) {
         <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
         <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 1fr" }}>
           {slide.bullets.map((item, index) => (
-            <PaperNote key={index} theme={theme} compact>
+            <PaperNote key={index} theme={theme} compact tilt={index % 2 === 0 ? -1 : 1}>
               <div className="flex items-start gap-4">
                 <span
                   className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center font-wenkai font-black"
@@ -501,7 +589,7 @@ export function TimelineCard(props: CardProps) {
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div className="flex-1">
-                <PaperNote theme={theme} compact>
+                <PaperNote theme={theme} compact tilt={index % 2 === 0 ? -0.7 : 0.7}>
                   <PaperText theme={theme}>{item}</PaperText>
                 </PaperNote>
               </div>
@@ -522,7 +610,7 @@ export function ProseCard(props: CardProps) {
         <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
         <div className="flex flex-col gap-5">
           {slide.bullets.map((paragraph, index) => (
-            <PaperNote key={index} theme={theme}>
+            <PaperNote key={index} theme={theme} tilt={index % 2 === 0 ? -0.5 : 0.5}>
               <p
                 className="font-wenkai font-semibold leading-[1.7]"
                 style={{ color: theme.textBody, fontSize: scaledPx(36), textAlign: "justify" }}
