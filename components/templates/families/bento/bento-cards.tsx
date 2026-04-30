@@ -347,13 +347,13 @@ export function ComparisonCard(props: CardProps) {
   const isAB = slide.comparisonStyle === "ab";
   return (
     <StandardPage props={props} label="bento compare">
-      <Tile theme={theme} tone="soft" className="col-span-4 row-span-3">
+      <Tile theme={theme} tone="soft" className="col-span-3 row-span-3">
         <Badge theme={theme}>{slide.labelLeft || (isAB ? "方案 A" : "推荐")}</Badge>
         <div className="mt-5 flex flex-col gap-4">
           {slide.bullets.slice(0, mid).map((item, index) => <Text key={index} theme={theme}>{item}</Text>)}
         </div>
       </Tile>
-      <Tile theme={theme} className="col-span-2 row-span-3">
+      <Tile theme={theme} className="col-span-3 row-span-3">
         <Badge theme={theme}>{slide.labelRight || (isAB ? "方案 B" : "留意")}</Badge>
         <div className="mt-5 flex flex-col gap-4">
           {slide.bullets.slice(mid).map((item, index) => <Text key={index} theme={theme}>{item}</Text>)}
