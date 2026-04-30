@@ -8,13 +8,14 @@ import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Copy, Trash2 } from "lucide-react";
 import { CARD_TYPE_META } from "@/components/editor/card-type-meta";
-import type { BackgroundType, FontScale } from "@/components/templates/shared/theme";
+import type { BackgroundType, FontScale } from "@/components/templates/themes/theme";
 
 interface ThumbnailStripProps {
   slides: Slide[];
   selectedIndex: number;
   onSelect: (index: number) => void;
-  templateId?: string;
+  familyId?: string;
+  themeId?: string;
   backgroundType?: BackgroundType;
   fontScale?: FontScale;
   onMove?: (from: number, to: number) => void;
@@ -28,7 +29,8 @@ function ThumbnailItem({
   selected,
   total,
   onSelect,
-  templateId,
+  familyId,
+  themeId,
   backgroundType,
   fontScale,
   onMove,
@@ -40,7 +42,8 @@ function ThumbnailItem({
   selected: boolean;
   total: number;
   onSelect: (index: number) => void;
-  templateId: string;
+  familyId: string;
+  themeId: string;
   backgroundType: BackgroundType;
   fontScale?: FontScale;
   onMove?: (from: number, to: number) => void;
@@ -51,7 +54,7 @@ function ThumbnailItem({
   const scale = 0.12;
   const thumbW = CARD_WIDTH * scale;
   const thumbH = CARD_HEIGHT * scale;
-  const component = mapSlideToComponent(slide, templateId, backgroundType, {
+  const component = mapSlideToComponent(slide, familyId, themeId, backgroundType, {
     pageIndex: index + 1,
     pageTotal: total,
     fontScale,
@@ -170,7 +173,8 @@ export function ThumbnailStrip({
   slides,
   selectedIndex,
   onSelect,
-  templateId = "template-a",
+  familyId = "classic",
+  themeId = "template-a",
   backgroundType = "solid",
   fontScale,
   onMove,
@@ -195,7 +199,8 @@ export function ThumbnailStrip({
           total={slides.length}
           selected={selectedIndex === index}
           onSelect={handleSelect}
-          templateId={templateId}
+          familyId={familyId}
+          themeId={themeId}
           backgroundType={backgroundType}
           fontScale={fontScale}
           onMove={onMove}

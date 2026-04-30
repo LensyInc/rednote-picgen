@@ -42,7 +42,8 @@ export function ManualBuilder({ document, onDocumentChange }: ManualBuilderProps
         pageCount: 1,
       },
       theme: {
-        template: document.theme.template,
+        family: document.theme.family,
+        themeId: document.theme.themeId,
         primaryColor: document.theme.primaryColor,
         secondaryColor: document.theme.secondaryColor,
         backgroundType: document.theme.backgroundType || "solid",

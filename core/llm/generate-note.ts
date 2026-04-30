@@ -35,7 +35,7 @@ export async function generateNoteDocument(
   const validated = validateSlides(parsed, request.pageCount);
 
   const taskId = pregeneratedTaskId || crypto.randomUUID();
-  const config = getTemplateConfig(request.template);
+  const config = getTemplateConfig(request.theme);
 
   return {
     taskId,
@@ -49,7 +49,8 @@ export async function generateNoteDocument(
       pageCount: request.pageCount,
     },
     theme: {
-      template: request.template,
+      family: request.family,
+      themeId: request.theme,
       primaryColor: config.primaryColor,
       secondaryColor: config.secondaryColor,
       backgroundType: "solid",

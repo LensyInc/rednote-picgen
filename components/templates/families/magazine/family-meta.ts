@@ -1,0 +1,48 @@
+import type { TemplateFamily } from "@/components/templates/shared-new/card-types";
+import {
+  CoverCard,
+  TextCard,
+  TextImageCard,
+  SummaryCard,
+  CTACard,
+  QuoteCard,
+  TipsCard,
+  ComparisonCard,
+  StepCard,
+  StatsCard,
+  FaqCard,
+  ChecklistCard,
+  TimelineCard,
+  ProseCard,
+} from "./index";
+
+export const magazineFamily: TemplateFamily = {
+  id: "magazine",
+  name: "杂志",
+  description: "细线排版 + 编辑栏，双栏布局，适合深度内容",
+  requiresPro: true,
+  defaultTheme: "template-b",
+  supportsBackgrounds: ["solid", "gradient", "dots", "lines"],
+  capabilities: {
+    comparisonStyles: ["good-bad", "ab"],
+    imagePositions: ["top", "bottom", "background"],
+    maxBulletCount: 8,
+    supportsPageNumbers: true,
+  },
+  cards: {
+    CoverCard,
+    TextCard,
+    TextImageCard,
+    SummaryCard,
+    CTACard,
+    QuoteCard,
+    TipsCard,
+    ComparisonCard,
+    StepCard,
+    StatsCard,
+    FaqCard,
+    ChecklistCard,
+    TimelineCard,
+    ProseCard,
+  },
+};

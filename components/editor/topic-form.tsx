@@ -46,7 +46,8 @@ export function TopicForm({ onSubmit, isLoading = false, isLoggedIn = false }: T
       tone,
       noteType,
       pageCount,
-      template: "template-a",
+      family: "classic",
+      theme: "template-a",
       includeRealImages,
       userOutline: userOutline.trim() ? userOutline.trim() : undefined,
     };

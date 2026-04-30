@@ -79,7 +79,8 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
 
   const component = mapSlideToComponent(
     slide,
-    document.theme.template,
+    document.theme.family,
+    document.theme.themeId,
     document.theme.backgroundType || "solid",
     { pageIndex: slideIndex + 1, pageTotal: document.slides.length, fontScale: document.theme.fontScale }
   );

@@ -4,6 +4,8 @@ import { saveTaskDocument, loadTaskDocument, CONFLICT_ERROR } from "@/core/stora
 import { noteDocumentSchema } from "@/core/schema/note.schema";
 import { getRequestIdentity } from "@/lib/auth-server";
 import { upsertTaskMeta, checkTaskAccess } from "@/core/db/task-meta";
+import { getUserCreditInfo } from "@/core/db/credits";
+import { FAMILY_REGISTRY } from "@/components/templates/registry";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +46,18 @@ export async function POST(req: NextRequest) {
         { error: "taskId 不匹配" },
         { status: 400 }
       );
+    }
+
+    // 检查 family 的 Pro 权限
+    const familyMeta = FAMILY_REGISTRY[parseResult.data.theme.family];
+    if (familyMeta?.requiresPro) {
+      if (!identity.isLoggedIn || !identity.userId) {
+        return NextResponse.json({ error: "该模板仅限 Pro 会员使用" }, { status: 403 });
+      }
+      const creditInfo = await getUserCreditInfo(identity.userId);
+      if (creditInfo?.plan_type !== "pro") {
+        return NextResponse.json({ error: "该模板仅限 Pro 会员使用" }, { status: 403 });
+      }
     }
 
     // 鉴权 + 乐观锁

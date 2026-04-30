@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { templateEnum } from "@/core/schema/request.schema";
-import { THEMES } from "@/components/templates/shared/theme";
+import { THEMES } from "@/components/templates/themes/theme";
 
 export interface TemplateConfig {
   name: string;

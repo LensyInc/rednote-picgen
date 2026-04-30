@@ -12,7 +12,8 @@ export const mockNoteDocument: NoteDocument = {
     pageCount: 4,
   },
   theme: {
-    template: "template-a",
+    family: "classic",
+    themeId: "template-a",
     primaryColor: "#FF2442",
     secondaryColor: "#FFF5F7",
     backgroundType: "solid",
