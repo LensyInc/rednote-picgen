@@ -41,5 +41,6 @@ export interface TemplateFamily {
     imagePositions?: Array<"top" | "bottom" | "left" | "right" | "background">;
     maxBulletCount?: number;
     supportsPageNumbers?: boolean;
+    coverBackgroundOnly?: boolean;
   };
 }

@@ -86,19 +86,21 @@ function Tile({
   className,
   tone = "paper",
   pad = "normal",
+  bgOpacity = 1,
 }: {
   theme: Theme;
   children: ReactNode;
   className: string;
   tone?: Tone;
   pad?: "normal" | "tight" | "none";
+  bgOpacity?: number;
 }) {
   const padding = pad === "none" ? "" : pad === "tight" ? "p-5" : "p-7";
   return (
     <div
       className={`relative min-h-0 overflow-hidden ${padding} ${className}`}
       style={{
-        backgroundColor: toneBackground(theme, tone),
+        backgroundColor: withAlpha(toneBackground(theme, tone), bgOpacity),
         color: toneText(theme, tone),
         borderRadius: radius(theme, "lg"),
         border: `1px solid ${tone === "ink" ? withAlpha(theme.primaryText, 0.22) : theme.divider}`,
@@ -254,7 +256,7 @@ export function CoverCard(props: CardProps) {
 
   const mosaic = (
     <Mosaic>
-      <Tile theme={theme} tone="ink" className="col-span-4 row-span-5">
+      <Tile theme={theme} tone="ink" className="col-span-4 row-span-5" bgOpacity={hasImage ? 0.72 : 1}>
         <div className="flex h-full flex-col justify-between gap-8">
           <Badge theme={theme} tone="ink">FEATURE</Badge>
           <h1 className="font-black leading-[1.02] tracking-tight" style={{ color: theme.primaryText, fontSize: scaledPx(110) }}>
@@ -264,7 +266,7 @@ export function CoverCard(props: CardProps) {
         </div>
       </Tile>
       {!hasImage && <ImageBlock slide={slide} theme={theme} className="col-span-2 row-span-3" />}
-      <Tile theme={theme} tone="soft" className="col-span-2 row-span-2">
+      <Tile theme={theme} tone="soft" className="col-span-2 row-span-2" bgOpacity={hasImage ? 0.65 : 1}>
         <div className="flex h-full flex-col justify-between gap-5">
           <Badge theme={theme}>NOTE</Badge>
           <Text theme={theme} strong>{slide.highlight || slide.bullets[0] || "重点内容"}</Text>

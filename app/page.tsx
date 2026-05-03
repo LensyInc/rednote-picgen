@@ -198,6 +198,7 @@ export default function HomePage() {
   const imagePositions = (currentFamily.capabilities?.imagePositions ?? ["top", "bottom", "background"]).filter(
     (p): p is "top" | "bottom" | "background" => p === "top" || p === "bottom" || p === "background"
   );
+  const coverBackgroundOnly = currentFamily.capabilities?.coverBackgroundOnly ?? false;
 
   // 文档变化时自动保存（debounced）
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -794,6 +795,7 @@ export default function HomePage() {
                   onVersionUpdate={(v) => setDocument((prev) => ({ ...prev, version: v }))}
                   allowRewrite={isLoggedIn}
                   imagePositions={imagePositions}
+                  coverBackgroundOnly={coverBackgroundOnly}
                 />
               </div>
             )}

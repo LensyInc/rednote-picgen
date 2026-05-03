@@ -27,23 +27,24 @@ interface CardEditorProps {
   onChange: (next: Slide) => void;
   taskId?: string;
   imagePositions?: readonly ("top" | "bottom" | "background")[];
+  coverBackgroundOnly?: boolean;
 }
 
-function ImageSection({ slide, onChange, taskId, imagePositions }: CardEditorProps) {
+function ImageSection({ slide, onChange, taskId, imagePositions, coverBackgroundOnly }: CardEditorProps) {
   const switchId = React.useId();
   const pos = slide.imagePosition || "top";
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
 
-  // 封面卡片只保留背景模式
-  const allowedForType = slide.type === "cover" ? ["background"] as const : null;
   const ALL_POSITIONS = [
     { value: "top", label: "顶部" },
     { value: "background", label: "背景" },
     { value: "bottom", label: "底部" },
   ] as const;
-  const source = allowedForType ?? imagePositions;
+  const source = coverBackgroundOnly && slide.type === "cover"
+    ? ["background"] as const
+    : imagePositions;
   const positionOptions = source
     ? ALL_POSITIONS.filter((opt) => (source as readonly string[]).includes(opt.value))
     : ALL_POSITIONS;
@@ -422,8 +423,8 @@ function ProseEditor(props: CardEditorProps) {
   );
 }
 
-export function CardEditor({ slide, onChange, taskId, imagePositions }: CardEditorProps) {
-  const props = { slide, onChange, taskId, imagePositions };
+export function CardEditor({ slide, onChange, taskId, imagePositions, coverBackgroundOnly }: CardEditorProps) {
+  const props = { slide, onChange, taskId, imagePositions, coverBackgroundOnly };
   switch (slide.type) {
     case "cover":
       return <CoverEditor {...props} />;
