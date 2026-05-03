@@ -440,13 +440,56 @@ export function TimelineCard(props: CardProps) {
 
 export function ProseCard(props: CardProps) {
   const { slide, theme } = props;
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+  const pos = slide.imagePosition || "top";
+
+  if (hasImage && (pos === "top" || pos === "bottom")) {
+    return (
+      <Shell {...props} label="bento prose">
+        <div className="flex min-h-0 flex-1 flex-col gap-5">
+          {pos === "top" && (
+            <div className="shrink-0 overflow-hidden" style={{ borderRadius: radius(theme, "lg"), height: 420 }}>
+              <div className="h-full w-full" style={{ backgroundImage: `url("${imgSrc}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
+            </div>
+          )}
+          <Mosaic>
+            {slide.bullets.map((paragraph, index) => (
+              <Tile key={index} theme={theme} className={index === 0 ? "col-span-4 row-span-2" : spanFor(index + 4)} tone={index % 2 === 0 ? "paper" : "soft"}>
+                <Text theme={theme}>{paragraph}</Text>
+              </Tile>
+            ))}
+          </Mosaic>
+          {pos === "bottom" && (
+            <div className="shrink-0 overflow-hidden" style={{ borderRadius: radius(theme, "lg"), height: 420 }}>
+              <div className="h-full w-full" style={{ backgroundImage: `url("${imgSrc}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
+            </div>
+          )}
+        </div>
+      </Shell>
+    );
+  }
+
   return (
-    <StandardPage props={props} label="bento prose">
-      {slide.bullets.map((paragraph, index) => (
-        <Tile key={index} theme={theme} className={index === 0 ? "col-span-4 row-span-2" : spanFor(index + 4)} tone={index % 2 === 0 ? "paper" : "soft"}>
-          <Text theme={theme}>{paragraph}</Text>
-        </Tile>
-      ))}
-    </StandardPage>
+    <Shell {...props} label="bento prose">
+      {hasImage && pos === "background" && (
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.07,
+          }}
+        />
+      )}
+      <Mosaic>
+        {slide.bullets.map((paragraph, index) => (
+          <Tile key={index} theme={theme} className={index === 0 ? "col-span-4 row-span-2" : spanFor(index + 4)} tone={index % 2 === 0 ? "paper" : "soft"}>
+            <Text theme={theme}>{paragraph}</Text>
+          </Tile>
+        ))}
+      </Mosaic>
+    </Shell>
   );
 }

@@ -603,11 +603,31 @@ export function TimelineCard(props: CardProps) {
 
 export function ProseCard(props: CardProps) {
   const { slide, theme } = props;
-  return (
-    <PaperShell {...props} category="长文摘记">
-      <div className="flex flex-1 flex-col gap-6">
-        <PaperTitle theme={theme} size="md">{slide.title}</PaperTitle>
-        <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+  const pos = slide.imagePosition || "top";
+
+  const content = (
+    <>
+      {hasImage && pos === "background" && (
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.08,
+          }}
+        />
+      )}
+
+      {hasImage && pos === "top" && (
+        <div className="mb-5">
+          <ImagePanel slide={slide} theme={theme} />
+        </div>
+      )}
+
+      <div className="relative z-10 flex flex-1 flex-col gap-6">
         <div className="flex flex-col gap-5">
           {slide.bullets.map((paragraph, index) => (
             <PaperNote key={index} theme={theme} tilt={index % 2 === 0 ? -0.5 : 0.5}>
@@ -622,6 +642,62 @@ export function ProseCard(props: CardProps) {
         </div>
         {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
       </div>
+
+      {hasImage && pos === "bottom" && (
+        <div className="mt-5">
+          <ImagePanel slide={slide} theme={theme} />
+        </div>
+      )}
+    </>
+  );
+
+  if (pos === "background") {
+    return (
+      <CardContainer theme={theme} backgroundType={props.backgroundType} fontScale={props.fontScale}>
+        {hasImage && (
+          <div
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage: `url("${imgSrc}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: 0.08,
+            }}
+          />
+        )}
+        <div className="relative z-10 flex h-full flex-col p-14">
+          <div
+            className="relative flex h-full flex-col overflow-hidden px-12 py-10"
+            style={{
+              backgroundColor: paperColor(theme),
+              border: `2px dashed ${withAlpha(theme.primary, 0.45)}`,
+              borderRadius: radius(theme, "lg"),
+              boxShadow: `0 18px 0 ${withAlpha(theme.primary, 0.08)}, 0 28px 45px ${withAlpha(theme.textStrong, 0.12)}`,
+            }}
+          >
+            <PaperHeader theme={theme} category="长文摘记" pageIndex={props.pageIndex} pageTotal={props.pageTotal} />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+              {slide.bullets.map((paragraph, index) => (
+                <PaperNote key={index} theme={theme} tilt={index % 2 === 0 ? -0.5 : 0.5}>
+                  <p
+                    className="font-wenkai font-semibold leading-[1.7]"
+                    style={{ color: theme.textBody, fontSize: scaledPx(36), textAlign: "justify" }}
+                  >
+                    {paragraph}
+                  </p>
+                </PaperNote>
+              ))}
+              {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
+            </div>
+          </div>
+        </div>
+      </CardContainer>
+    );
+  }
+
+  return (
+    <PaperShell {...props} category="长文摘记">
+      {content}
     </PaperShell>
   );
 }
