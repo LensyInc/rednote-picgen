@@ -65,7 +65,7 @@ export function createEmptySlide(type: Slide["type"], id: string): Slide {
     case "content":
       return { ...base, title: "内容标题", bullets: ["第一条要点", "第二条要点"] };
     case "prose":
-      return { ...base, title: "纯文本", bullets: ["第一段正文内容", "第二段正文内容"] };
+      return { ...base, title: "", bullets: ["第一段正文内容", "第二段正文内容"] };
     case "image":
       return { ...base, title: "图片主题", use_real_image: true };
     case "summary":
