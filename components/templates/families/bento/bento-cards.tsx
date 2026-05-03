@@ -249,26 +249,65 @@ function StandardPage({
 
 export function CoverCard(props: CardProps) {
   const { slide, theme } = props;
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+
+  const mosaic = (
+    <Mosaic>
+      <Tile theme={theme} tone="ink" className="col-span-4 row-span-5">
+        <div className="flex h-full flex-col justify-between gap-8">
+          <Badge theme={theme} tone="ink">FEATURE</Badge>
+          <h1 className="font-black leading-[1.02] tracking-tight" style={{ color: theme.primaryText, fontSize: scaledPx(110) }}>
+            {slide.title}
+          </h1>
+          {slide.subtitle && <Text theme={theme} tone="ink">{slide.subtitle}</Text>}
+        </div>
+      </Tile>
+      {!hasImage && <ImageBlock slide={slide} theme={theme} className="col-span-2 row-span-3" />}
+      <Tile theme={theme} tone="soft" className="col-span-2 row-span-2">
+        <div className="flex h-full flex-col justify-between gap-5">
+          <Badge theme={theme}>NOTE</Badge>
+          <Text theme={theme} strong>{slide.highlight || slide.bullets[0] || "重点内容"}</Text>
+        </div>
+      </Tile>
+    </Mosaic>
+  );
+
+  if (hasImage) {
+    return (
+      <CardContainer theme={theme} backgroundType={props.backgroundType} fontScale={props.fontScale}>
+        <div
+          className="absolute inset-0 z-[1]"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="absolute inset-0 z-[2]" style={{ backgroundColor: theme.background, opacity: 0.35 }} />
+        <div className="relative z-10 flex h-full flex-col gap-5 p-14" style={{ textAlign: slide.textAlign ?? "left" }}>
+          <div className="flex shrink-0 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="h-7 w-7" style={{ backgroundColor: theme.primary, borderRadius: radius(theme, "sm") }} />
+              <span className="font-black tracking-[0.18em]" style={{ color: theme.primary, fontSize: scaledPx(22) }}>
+                BENTO COVER
+              </span>
+            </div>
+            {props.pageIndex != null && props.pageTotal != null && (
+              <span className="font-black tabular-nums" style={{ color: theme.textMuted, fontSize: scaledPx(22) }}>
+                {String(props.pageIndex).padStart(2, "0")} / {String(props.pageTotal).padStart(2, "0")}
+              </span>
+            )}
+          </div>
+          {mosaic}
+        </div>
+      </CardContainer>
+    );
+  }
+
   return (
     <Shell {...props} label="bento cover">
-      <Mosaic>
-        <Tile theme={theme} tone="ink" className="col-span-4 row-span-5">
-          <div className="flex h-full flex-col justify-between gap-8">
-            <Badge theme={theme} tone="ink">FEATURE</Badge>
-            <h1 className="font-black leading-[1.02] tracking-tight" style={{ color: theme.primaryText, fontSize: scaledPx(110) }}>
-              {slide.title}
-            </h1>
-            {slide.subtitle && <Text theme={theme} tone="ink">{slide.subtitle}</Text>}
-          </div>
-        </Tile>
-        <ImageBlock slide={slide} theme={theme} className="col-span-2 row-span-3" />
-        <Tile theme={theme} tone="soft" className="col-span-2 row-span-2">
-          <div className="flex h-full flex-col justify-between gap-5">
-            <Badge theme={theme}>NOTE</Badge>
-            <Text theme={theme} strong>{slide.highlight || slide.bullets[0] || "重点内容"}</Text>
-          </div>
-        </Tile>
-      </Mosaic>
+      {mosaic}
     </Shell>
   );
 }
