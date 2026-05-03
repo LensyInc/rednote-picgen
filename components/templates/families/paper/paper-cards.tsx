@@ -6,7 +6,10 @@ import {
   radius,
   scaledPx,
   withAlpha,
+  fontClass,
+  FONT_SCALE_MAP,
 } from "@/components/templates/themes/theme";
+import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import { proxyImageUrl } from "@/lib/proxy-image";
 
 function paperColor(theme: Theme) {
@@ -342,7 +345,7 @@ export function CoverCard(props: CardProps) {
   const hasImage = !!imgSrc;
 
   const content = (
-    <div className="flex flex-1 flex-col justify-center gap-9">
+    <div className="flex h-full flex-col justify-center gap-9">
       <div className="flex items-start justify-between gap-6">
       <div className="w-fit rotate-[-2deg]">
         <PaperNote theme={theme}>
@@ -373,32 +376,57 @@ export function CoverCard(props: CardProps) {
 
   if (hasImage) {
     return (
-      <CardContainer theme={theme} backgroundType={props.backgroundType} fontScale={props.fontScale}>
+      <div
+        className={fontClass(theme)}
+        style={{
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
+          position: "relative",
+          overflow: "hidden",
+          ["--font-scale" as string]: FONT_SCALE_MAP[props.fontScale || "medium"],
+        }}
+      >
         <div
-          className="absolute inset-0 z-[1]"
+          className="absolute inset-0"
           style={{
             backgroundImage: `url("${imgSrc}")`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            opacity: 0.18,
           }}
         />
+        <div className="absolute inset-0" style={{ backgroundColor: theme.background, opacity: 0.35 }} />
         <div className="relative z-10 flex h-full flex-col p-24">
           <div
             className="relative flex h-full flex-col overflow-hidden px-12 py-10"
             style={{
-              backgroundColor: withAlpha(paperColor(theme), 0.88),
+              backgroundColor: withAlpha(paperColor(theme), 0.9),
               border: `2px dashed ${withAlpha(theme.primary, 0.45)}`,
               borderRadius: radius(theme, "lg"),
               boxShadow: `0 18px 0 ${withAlpha(theme.primary, 0.08)}, 0 28px 45px ${withAlpha(theme.textStrong, 0.12)}`,
-              backdropFilter: "blur(2px)",
+              backdropFilter: "blur(3px)",
             }}
           >
             <PaperHeader theme={theme} category="手账封面" pageIndex={props.pageIndex} pageTotal={props.pageTotal} />
             {content}
           </div>
         </div>
-      </CardContainer>
+        {typeof props.pageIndex === "number" && typeof props.pageTotal === "number" && (
+          <div className="pointer-events-none absolute bottom-10 right-16 z-20" style={{ color: theme.textMuted }}>
+            <span
+              className="px-5 py-1 font-medium tabular-nums"
+              style={{
+                fontSize: scaledPx(28),
+                borderRadius: radius(theme, "pill"),
+                backgroundColor: theme.mood === "dark" ? theme.surfaceSoft : theme.surface,
+                color: theme.textMuted,
+                border: `1px solid ${theme.divider}`,
+              }}
+            >
+              {String(props.pageIndex).padStart(2, "0")} / {String(props.pageTotal).padStart(2, "0")}
+            </span>
+          </div>
+        )}
+      </div>
     );
   }
 

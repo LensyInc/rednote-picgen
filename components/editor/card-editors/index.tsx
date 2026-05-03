@@ -36,13 +36,16 @@ function ImageSection({ slide, onChange, taskId, imagePositions }: CardEditorPro
   const [uploadError, setUploadError] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
 
+  // 封面卡片只保留背景模式
+  const allowedForType = slide.type === "cover" ? ["background"] as const : null;
   const ALL_POSITIONS = [
     { value: "top", label: "顶部" },
     { value: "background", label: "背景" },
     { value: "bottom", label: "底部" },
   ] as const;
-  const positionOptions = imagePositions
-    ? ALL_POSITIONS.filter((opt) => (imagePositions as readonly string[]).includes(opt.value))
+  const source = allowedForType ?? imagePositions;
+  const positionOptions = source
+    ? ALL_POSITIONS.filter((opt) => (source as readonly string[]).includes(opt.value))
     : ALL_POSITIONS;
 
   function onSelect(image: StockSearchResult | null) {
