@@ -439,14 +439,59 @@ export function CoverCard(props: CardProps) {
 
 export function TextCard(props: CardProps) {
   const { slide, theme } = props;
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+  const pos = slide.imagePosition || "top";
+
+  const content = (
+    <div className="flex flex-1 flex-col gap-6">
+      {hasImage && pos === "top" && <ImagePanel slide={slide} theme={theme} />}
+      <PaperTitle theme={theme}>{slide.title}</PaperTitle>
+      <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
+      <PaperBulletList theme={theme} bullets={slide.bullets} />
+      {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
+      {hasImage && pos === "bottom" && <ImagePanel slide={slide} theme={theme} />}
+    </div>
+  );
+
+  if (hasImage && pos === "background") {
+    return (
+      <CardContainer theme={theme} backgroundType={props.backgroundType} fontScale={props.fontScale}>
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.07,
+          }}
+        />
+        <div className="relative z-10 flex h-full flex-col p-14">
+          <div
+            className="relative flex h-full flex-col overflow-hidden px-12 py-10"
+            style={{
+              backgroundColor: withAlpha(paperColor(theme), 0.9),
+              border: `2px dashed ${withAlpha(theme.primary, 0.45)}`,
+              borderRadius: radius(theme, "lg"),
+              boxShadow: `0 18px 0 ${withAlpha(theme.primary, 0.08)}, 0 28px 45px ${withAlpha(theme.textStrong, 0.12)}`,
+            }}
+          >
+            <PaperHeader theme={theme} category="手写正文" pageIndex={props.pageIndex} pageTotal={props.pageTotal} />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+              <PaperTitle theme={theme}>{slide.title}</PaperTitle>
+              <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
+              <PaperBulletList theme={theme} bullets={slide.bullets} />
+              {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
+            </div>
+          </div>
+        </div>
+      </CardContainer>
+    );
+  }
+
   return (
     <PaperShell {...props} category="手写正文">
-      <div className="flex flex-1 flex-col gap-6">
-        <PaperTitle theme={theme}>{slide.title}</PaperTitle>
-        <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
-        <PaperBulletList theme={theme} bullets={slide.bullets} />
-        {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
-      </div>
+      {content}
     </PaperShell>
   );
 }
