@@ -6,10 +6,12 @@ import { proxyImageUrl } from "@/lib/proxy-image";
 
 export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+  const pos = slide.imagePosition || "top";
 
   return (
     <CardContainer theme={theme} backgroundType={backgroundType} fontScale={fontScale}>
-      {imgSrc && (
+      {hasImage && pos === "background" && (
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -29,6 +31,19 @@ export function CoverCard({ slide, theme, backgroundType, pageIndex, pageTotal, 
 
       <div className="relative z-10 flex h-full flex-col" style={{ textAlign: slide.textAlign ?? "left" }}>
         <BtTopBar theme={theme} category="话题笔记" pageIndex={pageIndex} pageTotal={pageTotal} />
+
+        {hasImage && pos === "top" && (
+          <div
+            className="shrink-0 mx-20 mt-4"
+            style={{
+              height: 360,
+              backgroundImage: `url("${imgSrc}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              borderRadius: 4,
+            }}
+          />
+        )}
 
         {/* 大标题区：撑满剩余空间 */}
         <div className="flex flex-1 flex-col justify-center gap-10 px-20 pb-8 pl-24">
