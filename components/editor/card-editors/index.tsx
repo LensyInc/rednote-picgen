@@ -46,7 +46,7 @@ function ImageSection({ slide, onChange, taskId, imagePositions, coverBackground
 
   let source = imagePositions;
   if (coverBackgroundOnly && slide.type === "cover") source = ["background"];
-  if (textImagePositions && (slide.type === "content" || slide.type === "image")) source = textImagePositions;
+  if (textImagePositions && (slide.type === "content" || slide.type === "image" || slide.type === "prose")) source = textImagePositions;
   const positionOptions = source
     ? ALL_POSITIONS.filter((opt) => (source as readonly string[]).includes(opt.value))
     : ALL_POSITIONS;
