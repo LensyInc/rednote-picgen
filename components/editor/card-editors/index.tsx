@@ -28,9 +28,10 @@ interface CardEditorProps {
   taskId?: string;
   imagePositions?: readonly ("top" | "bottom" | "background")[];
   coverBackgroundOnly?: boolean;
+  textImagePositions?: readonly ("top" | "bottom" | "background")[];
 }
 
-function ImageSection({ slide, onChange, taskId, imagePositions, coverBackgroundOnly }: CardEditorProps) {
+function ImageSection({ slide, onChange, taskId, imagePositions, coverBackgroundOnly, textImagePositions }: CardEditorProps) {
   const switchId = React.useId();
   const pos = slide.imagePosition || "top";
   const [uploading, setUploading] = React.useState(false);
@@ -42,9 +43,10 @@ function ImageSection({ slide, onChange, taskId, imagePositions, coverBackground
     { value: "background", label: "背景" },
     { value: "bottom", label: "底部" },
   ] as const;
-  const source = coverBackgroundOnly && slide.type === "cover"
-    ? ["background"] as const
-    : imagePositions;
+
+  let source = imagePositions;
+  if (coverBackgroundOnly && slide.type === "cover") source = ["background"];
+  if (textImagePositions && (slide.type === "content" || slide.type === "image")) source = textImagePositions;
   const positionOptions = source
     ? ALL_POSITIONS.filter((opt) => (source as readonly string[]).includes(opt.value))
     : ALL_POSITIONS;
@@ -423,8 +425,8 @@ function ProseEditor(props: CardEditorProps) {
   );
 }
 
-export function CardEditor({ slide, onChange, taskId, imagePositions, coverBackgroundOnly }: CardEditorProps) {
-  const props = { slide, onChange, taskId, imagePositions, coverBackgroundOnly };
+export function CardEditor({ slide, onChange, taskId, imagePositions, coverBackgroundOnly, textImagePositions }: CardEditorProps) {
+  const props = { slide, onChange, taskId, imagePositions, coverBackgroundOnly, textImagePositions };
   switch (slide.type) {
     case "cover":
       return <CoverEditor {...props} />;

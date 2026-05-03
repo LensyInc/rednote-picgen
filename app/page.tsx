@@ -199,6 +199,9 @@ export default function HomePage() {
     (p): p is "top" | "bottom" | "background" => p === "top" || p === "bottom" || p === "background"
   );
   const coverBackgroundOnly = currentFamily.capabilities?.coverBackgroundOnly ?? false;
+  const textImagePositions = (currentFamily.capabilities?.textImagePositions ?? imagePositions).filter(
+    (p): p is "top" | "bottom" | "background" => p === "top" || p === "bottom" || p === "background"
+  );
 
   // 文档变化时自动保存（debounced）
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -796,6 +799,7 @@ export default function HomePage() {
                   allowRewrite={isLoggedIn}
                   imagePositions={imagePositions}
                   coverBackgroundOnly={coverBackgroundOnly}
+                  textImagePositions={textImagePositions}
                 />
               </div>
             )}

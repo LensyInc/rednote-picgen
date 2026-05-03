@@ -29,6 +29,7 @@ export const paperFamily: TemplateFamily = {
     maxBulletCount: 8,
     supportsPageNumbers: true,
     coverBackgroundOnly: true,
+    textImagePositions: ["top", "bottom"],
   },
   cards: {
     CoverCard,

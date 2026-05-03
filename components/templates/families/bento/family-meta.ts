@@ -29,6 +29,7 @@ export const bentoFamily: TemplateFamily = {
     maxBulletCount: 8,
     supportsPageNumbers: true,
     coverBackgroundOnly: true,
+    textImagePositions: ["top"],
   },
   cards: {
     CoverCard,

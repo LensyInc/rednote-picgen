@@ -315,10 +315,22 @@ export function CoverCard(props: CardProps) {
 }
 
 export function TextCard(props: CardProps) {
+  const { slide, theme } = props;
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+
   return (
-    <StandardPage props={props} label="bento text">
-      <BulletMosaic theme={props.theme} bullets={props.slide.bullets} />
-    </StandardPage>
+    <Shell {...props} label="bento text">
+      <TitleBar slide={slide} theme={theme} />
+      {imgSrc && (
+        <div className="shrink-0 overflow-hidden mx-1" style={{ borderRadius: radius(theme, "lg"), height: 380 }}>
+          <div className="h-full w-full" style={{ backgroundImage: `url("${imgSrc}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        </div>
+      )}
+      <Mosaic>
+        <BulletMosaic theme={theme} bullets={slide.bullets} />
+      </Mosaic>
+      {slide.highlight && <HighlightBar theme={theme}>{slide.highlight}</HighlightBar>}
+    </Shell>
   );
 }
 
