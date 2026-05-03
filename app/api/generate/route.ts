@@ -5,8 +5,9 @@ import { generateNoteDocument } from "@/core/llm/generate-note";
 import { saveTaskDocument } from "@/core/storage/task-store";
 import { checkLLMAPIKey } from "@/core/llm/check-api-key";
 import { getRequestIdentity, requireLogin } from "@/lib/auth-server";
-import { consumeCredit, refundCredit } from "@/core/db/credits";
+import { consumeCredit, refundCredit, getUserCreditInfo } from "@/core/db/credits";
 import { upsertTaskMeta } from "@/core/db/task-meta";
+import { FAMILY_REGISTRY } from "@/components/templates/registry";
 
 // 允许长时间运行（两段 LLM 调用在慢模型上可能超过 1 分钟）
 export const maxDuration = 300;
@@ -34,6 +35,18 @@ export async function POST(req: NextRequest) {
 
     const data = result.data;
 
+    // 检查 family 的 Pro 权限
+    const familyMeta = FAMILY_REGISTRY[data.family];
+    if (familyMeta?.requiresPro) {
+      const creditInfo = await getUserCreditInfo(identity.userId!);
+      if (creditInfo?.plan_type !== "pro") {
+        return NextResponse.json(
+          { error: "该模板仅限 Pro 会员使用" },
+          { status: 403 }
+        );
+      }
+    }
+
     // 检查 API Key 是否配置
     const apiKeyError = checkLLMAPIKey();
     if (apiKeyError) {
@@ -48,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     try {
       console.log(
-        `[generate] start topic="${data.topic}" pages=${data.pageCount} template=${data.template}`
+        `[generate] start topic="${data.topic}" pages=${data.pageCount} family=${data.family} theme=${data.theme}`
       );
 
       // 扣点

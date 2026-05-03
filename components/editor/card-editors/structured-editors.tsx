@@ -43,9 +43,46 @@ function useStablePairs(bullets: string[], separators: string[]) {
   return [pairs, setPairs] as const;
 }
 
+function splitFaqBullet(text: string): { a: string; b: string } {
+  for (const sep of ["？", "?"]) {
+    const idx = text.indexOf(sep);
+    if (idx >= 0) {
+      return {
+        a: text.slice(0, idx).trim(),
+        b: text.slice(idx + sep.length).trim(),
+      };
+    }
+  }
+  return { a: text, b: "" };
+}
+
 /** FAQ 编辑器：每条 bullet 是一组问答（序列化为 "问？答"） */
 export function FaqPairsEditor({ slide, onChange, maxBullets = 8 }: CardEditorProps) {
-  const [pairs, setPairs] = useStablePairs(slide.bullets, ["？", "?"]);
+  const [pairs, setPairs] = React.useState(() =>
+    slide.bullets.map((b) => ({
+      id: nextPairId(),
+      ...splitFaqBullet(b),
+    }))
+  );
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setPairs((prev) => {
+        const parsed = slide.bullets.map(splitFaqBullet);
+        if (
+          prev.length === parsed.length &&
+          prev.every((p, i) => p.a === parsed[i].a && p.b === parsed[i].b)
+        ) {
+          return prev;
+        }
+        return parsed.map((p, i) => ({
+          id: prev[i]?.a === p.a && prev[i]?.b === p.b ? prev[i].id : nextPairId(),
+          ...p,
+        }));
+      });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [slide.bullets]);
 
   function commit(next: { id: string; a: string; b: string }[]) {
     setPairs(next);
@@ -54,9 +91,8 @@ export function FaqPairsEditor({ slide, onChange, maxBullets = 8 }: CardEditorPr
       const a = p.b.trim();
       if (!q && !a) return "";
       if (!q) return a;
-      // 确保问题以 "?" 或 "？" 结尾
+      if (!a) return q;
       const qNormalized = /[？?]$/.test(q) ? q : `${q}？`;
-      if (!a) return qNormalized;
       return `${qNormalized}${a}`;
     });
     onChange({ ...slide, bullets });

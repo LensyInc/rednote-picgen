@@ -17,9 +17,12 @@ interface SlideEditorProps {
   onUpdate: (updated: Slide) => void;
   onVersionUpdate?: (version: number) => void;
   allowRewrite?: boolean;
+  imagePositions?: readonly ("top" | "bottom" | "background")[];
+  coverBackgroundOnly?: boolean;
+  textImagePositions?: readonly ("top" | "bottom" | "background")[];
 }
 
-export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {}, allowRewrite = true }: SlideEditorProps) {
+export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {}, allowRewrite = true, imagePositions, coverBackgroundOnly, textImagePositions }: SlideEditorProps) {
   const [editing, setEditing] = React.useState<Slide>({
     ...slide,
     bullets: [...slide.bullets],
@@ -161,7 +164,7 @@ export function SlideEditor({ slide, taskId, onUpdate, onVersionUpdate = () => {
       )}
 
       <div className="space-y-3">
-        <CardEditor slide={editing} onChange={setEditing} taskId={taskId} />
+        <CardEditor slide={editing} onChange={setEditing} taskId={taskId} imagePositions={imagePositions} coverBackgroundOnly={coverBackgroundOnly} textImagePositions={textImagePositions} />
       </div>
 
       {showRewrite && (

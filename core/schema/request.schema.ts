@@ -22,6 +22,8 @@ export const templateEnum = z.enum([
   "template-g",
   "template-h",
 ]);
+
+export const familyEnum = z.enum(["classic", "magazine", "bigtype", "grid", "paper", "bento"]);
 export const slideTypeEnum = z.enum([
   "cover",
   "content",
@@ -50,9 +52,11 @@ export const generateRequestSchema = z.object({
   tone: toneEnum,
   noteType: noteTypeEnum,
   pageCount: generatePageCountSchema,
-  template: templateEnum.default("template-a"),
+  family: familyEnum.default("classic"),
+  theme: templateEnum.default("template-a"),
   includeRealImages: z.boolean().optional(),
   userOutline: z.string().max(4000).optional(),
 });
 
 export type GenerateRequest = z.infer<typeof generateRequestSchema>;
+export type FamilyId = z.infer<typeof familyEnum>;

@@ -1,22 +1,7 @@
 import { Slide } from "@/core/schema/note.schema";
-import {
-  CoverCard,
-  TextCard,
-  TextImageCard,
-  SummaryCard,
-  CTACard,
-  QuoteCard,
-  TipsCard,
-  ComparisonCard,
-  StepCard,
-  StatsCard,
-  FaqCard,
-  ChecklistCard,
-  TimelineCard,
-  ProseCard,
-  getThemeSafe,
-} from "@/components/templates/shared";
-import type { BackgroundType, FontScale } from "@/components/templates/shared/theme";
+import { getFamily } from "@/components/templates/registry";
+import { getThemeSafe } from "@/components/templates/themes/theme";
+import type { BackgroundType, FontScale } from "@/components/templates/themes/theme";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 interface MapOptions {
@@ -27,12 +12,15 @@ interface MapOptions {
 
 export function mapSlideToComponent(
   slide: Slide,
-  templateId: string,
+  familyId: string = "classic",
+  themeId: string = "template-a",
   backgroundType?: BackgroundType,
   options: MapOptions = {}
 ) {
-  const theme = getThemeSafe(templateId);
+  const family = getFamily(familyId);
+  const theme = getThemeSafe(themeId);
   const bg = backgroundType || "solid";
+  const C = family.cards;
   const props = {
     slide,
     theme,
@@ -45,40 +33,40 @@ export function mapSlideToComponent(
   const card = (() => {
     switch (slide.type) {
     case "cover":
-      return <CoverCard {...props} />;
+      return <C.CoverCard {...props} />;
     case "content":
-      if (slide.use_real_image) return <TextImageCard {...props} />;
-      return <TextCard {...props} />;
+      if (slide.use_real_image) return <C.TextImageCard {...props} />;
+      return <C.TextCard {...props} />;
     case "summary":
-      return <SummaryCard {...props} />;
+      return <C.SummaryCard {...props} />;
     case "cta":
-      return <CTACard {...props} />;
+      return <C.CTACard {...props} />;
     case "image":
-      return <TextImageCard {...props} />;
+      return <C.TextImageCard {...props} />;
     case "quote":
-      return <QuoteCard {...props} />;
+      return <C.QuoteCard {...props} />;
     case "tips":
-      return <TipsCard {...props} />;
+      return <C.TipsCard {...props} />;
     case "comparison":
-      return <ComparisonCard {...props} />;
+      return <C.ComparisonCard {...props} />;
     case "step":
-      return <StepCard {...props} />;
+      return <C.StepCard {...props} />;
     case "stats":
-      return <StatsCard {...props} />;
+      return <C.StatsCard {...props} />;
     case "faq":
-      return <FaqCard {...props} />;
+      return <C.FaqCard {...props} />;
     case "checklist":
-      return <ChecklistCard {...props} />;
+      return <C.ChecklistCard {...props} />;
     case "timeline":
-      return <TimelineCard {...props} />;
+      return <C.TimelineCard {...props} />;
     case "prose":
-      return <ProseCard {...props} />;
+      return <C.ProseCard {...props} />;
     default: {
       console.warn(`[mapSlideToComponent] 未知 slide 类型: ${slide.type}, 降级为 TextCard`);
-      return <TextCard {...props} />;
+      return <C.TextCard {...props} />;
     }
   }
-})();
+  })();
 
   return <ErrorBoundary>{card}</ErrorBoundary>;
 }

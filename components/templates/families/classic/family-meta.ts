@@ -1,0 +1,48 @@
+import type { TemplateFamily } from "@/components/templates/shared-new/card-types";
+import {
+  CoverCard,
+  TextCard,
+  TextImageCard,
+  SummaryCard,
+  CTACard,
+  QuoteCard,
+  TipsCard,
+  ComparisonCard,
+  StepCard,
+  StatsCard,
+  FaqCard,
+  ChecklistCard,
+  TimelineCard,
+  ProseCard,
+} from "./index";
+
+export const classicFamily: TemplateFamily = {
+  id: "classic",
+  name: "经典",
+  description: "清爽色块 + 规则排版，适合大多数内容场景",
+  requiresPro: false,
+  defaultTheme: "template-a",
+  supportsBackgrounds: ["solid", "gradient", "dots", "lines"],
+  capabilities: {
+    comparisonStyles: ["good-bad", "ab"],
+    imagePositions: ["top", "bottom", "background"],
+    maxBulletCount: 8,
+    supportsPageNumbers: true,
+  },
+  cards: {
+    CoverCard,
+    TextCard,
+    TextImageCard,
+    SummaryCard,
+    CTACard,
+    QuoteCard,
+    TipsCard,
+    ComparisonCard,
+    StepCard,
+    StatsCard,
+    FaqCard,
+    ChecklistCard,
+    TimelineCard,
+    ProseCard,
+  },
+};

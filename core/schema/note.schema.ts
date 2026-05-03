@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { slideTypeEnum, templateEnum, pageCountSchema, sourceEnum, backgroundTypeEnum, toneEnum, noteTypeEnum } from "./request.schema";
+import { slideTypeEnum, templateEnum, familyEnum, pageCountSchema, sourceEnum, backgroundTypeEnum, toneEnum, noteTypeEnum } from "./request.schema";
 
 export const imageSchema = z
   .object({
@@ -46,7 +46,8 @@ export const noteDocumentSchema = z.object({
     pageCount: pageCountSchema,
   }),
   theme: z.object({
-    template: templateEnum,
+    family: familyEnum.default("classic"),
+    themeId: templateEnum,
     primaryColor: z.string(),
     secondaryColor: z.string(),
     backgroundType: backgroundTypeEnum.default("solid"),

@@ -11,10 +11,11 @@ import { ExportButton } from "@/components/editor/export-button";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { UserMenu } from "@/components/auth/user-menu";
 import { useAuth } from "@/lib/auth-context";
+import { usePlanType } from "@/lib/use-plan-type";
 import { fetchWithAuth } from "@/lib/fetch-with-auth";
 import { ensureGuestId } from "@/lib/guest-id";
 import { NoteDocument, Slide } from "@/core/schema/note.schema";
-import { GenerateRequest } from "@/core/schema/request.schema";
+import { GenerateRequest, type FamilyId } from "@/core/schema/request.schema";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverItem } from "@/components/ui/popover";
 import {
@@ -31,10 +32,12 @@ import {
   Download,
   Type,
   Pencil,
+  Lock,
+  LayoutTemplate,
 } from "lucide-react";
 import { CARD_TYPES, createEmptySlide } from "@/components/editor/card-type-meta";
-import { THEMES, type BackgroundType, FONT_SCALE_MAP, type FontScale } from "@/components/templates/shared/theme";
-import { templateEnum } from "@/core/schema/request.schema";
+import { THEMES, type BackgroundType, FONT_SCALE_MAP, type FontScale, type TemplateId } from "@/components/templates/themes/theme";
+import { getFamily, getFamilyList } from "@/components/templates/registry";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import {
@@ -45,9 +48,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { z } from "zod";
-
-type TemplateId = z.infer<typeof templateEnum>;
+import { UpgradeDialog } from "@/components/auth/upgrade-dialog";
 
 const BACKGROUND_TYPES: { value: BackgroundType; label: string; description: string }[] = [
   { value: "solid", label: "纯色", description: "干净的纯色背景" },
@@ -73,7 +74,8 @@ function createBlankDocument(): NoteDocument {
     createdAt: new Date().toISOString(),
     meta: { topic: "", audience: "通用", tone: "gentle", noteType: "listicle", pageCount: 1 },
     theme: {
-      template: "template-a",
+      family: "classic",
+      themeId: "template-a",
       primaryColor: "#FF2442",
       secondaryColor: "#FFF5F7",
       backgroundType: "solid",
@@ -95,6 +97,7 @@ function createBlankDocument(): NoteDocument {
 
 export default function HomePage() {
   const { isLoggedIn } = useAuth();
+  const { isPro } = usePlanType();
 
   // 确保游客有 guestId
   React.useEffect(() => {
@@ -130,6 +133,7 @@ export default function HomePage() {
   const [exporting, setExporting] = React.useState(false);
   const [exportProgress, setExportProgress] = React.useState(0);
   const [isNavigatingHome, setIsNavigatingHome] = React.useState(false);
+  const [showUpgradeForFamily, setShowUpgradeForFamily] = React.useState(false);
 
   // 导出时按需挂载目标 slide DOM（通过 exportTargetIndex 控制）
   const [exportTargetIndex, setExportTargetIndex] = React.useState<number | null>(null);
@@ -190,6 +194,14 @@ export default function HomePage() {
   const currentSlide: Slide = document.slides[safeIndex] ?? document.slides[0];
   const backgroundType = document.theme.backgroundType || "solid";
   const currentBg = BACKGROUND_TYPES.find((b) => b.value === backgroundType) || BACKGROUND_TYPES[0];
+  const currentFamily = getFamily(document.theme.family);
+  const imagePositions = (currentFamily.capabilities?.imagePositions ?? ["top", "bottom", "background"]).filter(
+    (p): p is "top" | "bottom" | "background" => p === "top" || p === "bottom" || p === "background"
+  );
+  const coverBackgroundOnly = currentFamily.capabilities?.coverBackgroundOnly ?? false;
+  const textImagePositions = (currentFamily.capabilities?.textImagePositions ?? imagePositions).filter(
+    (p): p is "top" | "bottom" | "background" => p === "top" || p === "bottom" || p === "background"
+  );
 
   // 文档变化时自动保存（debounced）
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -361,13 +373,29 @@ export default function HomePage() {
     });
   }
 
-  function handleTemplateChange(templateId: TemplateId) {
-    const theme = THEMES[templateId];
+  function handleThemeChange(themeId: TemplateId) {
+    const theme = THEMES[themeId];
     setDocument({
       ...document,
       theme: {
         ...document.theme,
-        template: templateId,
+        themeId,
+        primaryColor: theme.primary,
+        secondaryColor: theme.surfaceSoft,
+      },
+    });
+  }
+
+  function handleFamilyChange(familyId: string) {
+    const family = getFamilyList().find((f) => f.id === familyId);
+    const themeId = (family?.defaultTheme || document.theme.themeId) as TemplateId;
+    const theme = THEMES[themeId] || THEMES[document.theme.themeId];
+    setDocument({
+      ...document,
+      theme: {
+        ...document.theme,
+        family: familyId as FamilyId,
+        themeId,
         primaryColor: theme.primary,
         secondaryColor: theme.surfaceSoft,
       },
@@ -494,6 +522,8 @@ export default function HomePage() {
           isLoading={isGenerating}
           error={generateError}
           isLoggedIn={isLoggedIn}
+          defaultFamily={document.theme.family}
+          defaultTheme={document.theme.themeId}
         />
         <ManualStartDialog
           open={showManualDialog}
@@ -577,8 +607,51 @@ export default function HomePage() {
             <Popover
               trigger={
                 <Button size="sm" variant="outline" className="gap-1.5">
+                  <LayoutTemplate className="h-3.5 w-3.5" />
+                  模板：{getFamilyList().find((f) => f.id === document.theme.family)?.name || "经典"}
+                  <ChevronDown className="h-3 w-3 opacity-60" />
+                </Button>
+              }
+              contentClassName="w-[240px]"
+            >
+              <div className="px-2 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
+                选择模板
+              </div>
+              {getFamilyList().map((f) => {
+                return (
+                  <PopoverItem
+                    key={f.id}
+                    onClick={() => {
+                      if (f.requiresPro && !isPro) {
+                        setShowUpgradeForFamily(true);
+                        return;
+                      }
+                      handleFamilyChange(f.id);
+                    }}
+                    active={document.theme.family === f.id}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        {f.name}
+                        {f.requiresPro && (
+                          <span className="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1 py-0.5 text-[9px] font-semibold text-amber-700">
+                            <Lock className="h-2.5 w-2.5" />
+                            Pro
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground truncate">{f.description}</div>
+                    </div>
+                  </PopoverItem>
+                );
+              })}
+            </Popover>
+
+            <Popover
+              trigger={
+                <Button size="sm" variant="outline" className="gap-1.5">
                   <Paintbrush className="h-3.5 w-3.5" />
-                  配色：{THEMES[document.theme.template]?.name || "默认"}
+                  配色：{THEMES[document.theme.themeId]?.name || "默认"}
                   <ChevronDown className="h-3 w-3 opacity-60" />
                 </Button>
               }
@@ -590,8 +663,8 @@ export default function HomePage() {
               {Object.values(THEMES).map((t) => (
                 <PopoverItem
                   key={t.id}
-                  onClick={() => handleTemplateChange(t.id)}
-                  active={document.theme.template === t.id}
+                  onClick={() => handleThemeChange(t.id)}
+                  active={document.theme.themeId === t.id}
                 >
                   <span
                     className="h-4 w-4 shrink-0 rounded-full border"
@@ -664,7 +737,8 @@ export default function HomePage() {
           <div className="flex-1 overflow-hidden">
             <PreviewCanvas
               slide={currentSlide}
-              templateId={document.theme.template}
+              familyId={document.theme.family}
+              themeId={document.theme.themeId}
               backgroundType={backgroundType}
               pageIndex={selectedIndex + 1}
               pageTotal={document.slides.length}
@@ -706,7 +780,8 @@ export default function HomePage() {
                 slides={document.slides}
                 selectedIndex={selectedIndex}
                 onSelect={setSelectedIndex}
-                templateId={document.theme.template}
+                familyId={document.theme.family}
+                themeId={document.theme.themeId}
                 backgroundType={backgroundType}
                 fontScale={document.theme.fontScale}
                 onMove={handleMoveSlide}
@@ -722,6 +797,9 @@ export default function HomePage() {
                   onUpdate={handleSlideUpdate}
                   onVersionUpdate={(v) => setDocument((prev) => ({ ...prev, version: v }))}
                   allowRewrite={isLoggedIn}
+                  imagePositions={imagePositions}
+                  coverBackgroundOnly={coverBackgroundOnly}
+                  textImagePositions={textImagePositions}
                 />
               </div>
             )}
@@ -888,7 +966,8 @@ export default function HomePage() {
           <div ref={exportDomRef} style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
             {mapSlideToComponent(
               document.slides[exportTargetIndex],
-              document.theme.template,
+              document.theme.family,
+              document.theme.themeId,
               backgroundType,
               { pageIndex: exportTargetIndex + 1, pageTotal: document.slides.length, fontScale: document.theme.fontScale }
             )}
@@ -897,6 +976,7 @@ export default function HomePage() {
       )}
 
       <AuthDialog />
+      <UpgradeDialog open={showUpgradeForFamily} onOpenChange={setShowUpgradeForFamily} />
     </div>
   );
 }

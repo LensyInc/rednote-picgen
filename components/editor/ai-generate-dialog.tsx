@@ -11,9 +11,20 @@ interface AIGenerateDialogProps {
   isLoading: boolean;
   error: string | null;
   isLoggedIn: boolean;
+  defaultFamily?: GenerateRequest["family"];
+  defaultTheme?: GenerateRequest["theme"];
 }
 
-export function AIGenerateDialog({ open, onOpenChange, onSubmit, isLoading, error, isLoggedIn }: AIGenerateDialogProps) {
+export function AIGenerateDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading,
+  error,
+  isLoggedIn,
+  defaultFamily,
+  defaultTheme,
+}: AIGenerateDialogProps) {
   function handleOpenChange(next: boolean) {
     if (isLoading) return;
     onOpenChange(next);
@@ -30,7 +41,13 @@ export function AIGenerateDialog({ open, onOpenChange, onSubmit, isLoading, erro
             {error}
           </div>
         )}
-        <TopicForm onSubmit={onSubmit} isLoading={isLoading} isLoggedIn={isLoggedIn} />
+        <TopicForm
+          onSubmit={onSubmit}
+          isLoading={isLoading}
+          isLoggedIn={isLoggedIn}
+          defaultFamily={defaultFamily}
+          defaultTheme={defaultTheme}
+        />
       </DialogContent>
     </Dialog>
   );
