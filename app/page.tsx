@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { CARD_TYPES, createEmptySlide } from "@/components/editor/card-type-meta";
 import { THEMES, type BackgroundType, FONT_SCALE_MAP, type FontScale, type TemplateId } from "@/components/templates/themes/theme";
-import { getFamilyList } from "@/components/templates/registry";
+import { getFamily, getFamilyList } from "@/components/templates/registry";
 import { mapSlideToComponent } from "@/core/render/map-slide-to-component";
 import { CARD_WIDTH, CARD_HEIGHT } from "@/core/render/card-dimensions";
 import {
@@ -194,6 +194,10 @@ export default function HomePage() {
   const currentSlide: Slide = document.slides[safeIndex] ?? document.slides[0];
   const backgroundType = document.theme.backgroundType || "solid";
   const currentBg = BACKGROUND_TYPES.find((b) => b.value === backgroundType) || BACKGROUND_TYPES[0];
+  const currentFamily = getFamily(document.theme.family);
+  const imagePositions = (currentFamily.capabilities?.imagePositions ?? ["top", "bottom", "background"]).filter(
+    (p): p is "top" | "bottom" | "background" => p === "top" || p === "bottom" || p === "background"
+  );
 
   // 文档变化时自动保存（debounced）
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -789,6 +793,7 @@ export default function HomePage() {
                   onUpdate={handleSlideUpdate}
                   onVersionUpdate={(v) => setDocument((prev) => ({ ...prev, version: v }))}
                   allowRewrite={isLoggedIn}
+                  imagePositions={imagePositions}
                 />
               </div>
             )}

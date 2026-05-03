@@ -6,13 +6,25 @@ import { proxyImageUrl } from "@/lib/proxy-image";
 
 export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTotal, fontScale }: CardProps) {
   const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const pos = slide.imagePosition || "top";
 
   return (
     <CardContainer theme={theme} backgroundType={backgroundType} fontScale={fontScale}>
+      {imgSrc && pos === "background" && (
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.05,
+          }}
+        />
+      )}
       <div className="flex h-full flex-col" style={{ textAlign: slide.textAlign ?? "left" }}>
         <GdTopBar theme={theme} category="图文" pageIndex={pageIndex} pageTotal={pageTotal} />
 
-        {imgSrc && (
+        {imgSrc && pos === "top" && (
           <div
             className="mx-20 mt-6 shrink-0 overflow-hidden"
             style={{ height: 360, borderRadius: radius(theme, "lg") }}

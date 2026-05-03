@@ -26,14 +26,24 @@ interface CardEditorProps {
   slide: Slide;
   onChange: (next: Slide) => void;
   taskId?: string;
+  imagePositions?: readonly ("top" | "bottom" | "background")[];
 }
 
-function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
+function ImageSection({ slide, onChange, taskId, imagePositions }: CardEditorProps) {
   const switchId = React.useId();
   const pos = slide.imagePosition || "top";
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const ALL_POSITIONS = [
+    { value: "top", label: "顶部" },
+    { value: "background", label: "背景" },
+    { value: "bottom", label: "底部" },
+  ] as const;
+  const positionOptions = imagePositions
+    ? ALL_POSITIONS.filter((opt) => (imagePositions as readonly string[]).includes(opt.value))
+    : ALL_POSITIONS;
 
   function onSelect(image: StockSearchResult | null) {
     setUploadError(null);
@@ -121,11 +131,7 @@ function ImageSection({ slide, onChange, taskId }: CardEditorProps) {
           <div className="space-y-1.5">
             <Label className="text-xs">图片位置</Label>
             <div className="grid grid-cols-3 gap-1">
-              {([
-                { value: "top", label: "顶部" },
-                { value: "background", label: "背景" },
-                { value: "bottom", label: "底部" },
-              ] as const).map((opt) => (
+              {positionOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
@@ -413,8 +419,8 @@ function ProseEditor(props: CardEditorProps) {
   );
 }
 
-export function CardEditor({ slide, onChange, taskId }: CardEditorProps) {
-  const props = { slide, onChange, taskId };
+export function CardEditor({ slide, onChange, taskId, imagePositions }: CardEditorProps) {
+  const props = { slide, onChange, taskId, imagePositions };
   switch (slide.type) {
     case "cover":
       return <CoverEditor {...props} />;

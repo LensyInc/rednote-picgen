@@ -25,7 +25,7 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
         <MagPageBadge theme={theme} pageIndex={pageIndex} pageTotal={pageTotal} />
       </div>
 
-      {/* 图片在上 */}
+      {/* 图片在顶部 */}
       {hasImage && pos === "top" && (
         <div
           className="shrink-0"
@@ -38,13 +38,9 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
         />
       )}
 
-      {/* 正文区域 */}
-      <div
-        className="flex flex-1 overflow-hidden"
-        style={{ textAlign: slide.textAlign ?? "left" }}
-      >
-        {/* 左图右字布局（无顶图时） */}
-        {hasImage && pos !== "top" && pos !== "background" ? (
+      <div className="flex flex-1 overflow-hidden" style={{ textAlign: slide.textAlign ?? "left" }}>
+        {/* 左图右字布局（bottom以外的无顶图模式） */}
+        {hasImage && pos !== "top" && pos !== "bottom" && pos !== "background" ? (
           <>
             <div
               className="w-[480px] shrink-0"
@@ -80,6 +76,19 @@ export function TextImageCard({ slide, theme, backgroundType, pageIndex, pageTot
           </div>
         )}
       </div>
+
+      {/* 图片在底部 */}
+      {hasImage && pos === "bottom" && (
+        <div
+          className="shrink-0"
+          style={{
+            height: 540,
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      )}
     </CardContainer>
   );
 }

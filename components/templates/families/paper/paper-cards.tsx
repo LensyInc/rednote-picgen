@@ -338,6 +338,64 @@ function ImagePanel({ slide, theme, height = 360 }: { slide: CardProps["slide"];
 
 export function CoverCard(props: CardProps) {
   const { slide, theme } = props;
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+
+  if (imgSrc) {
+    return (
+      <CardContainer theme={theme} backgroundType={props.backgroundType} fontScale={props.fontScale}>
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.07,
+          }}
+        />
+        <div className="relative z-10 flex h-full flex-col p-14">
+          <div
+            className="relative flex h-full flex-col overflow-hidden px-12 py-10"
+            style={{
+              backgroundColor: paperColor(theme),
+              border: `2px dashed ${withAlpha(theme.primary, 0.45)}`,
+              borderRadius: radius(theme, "lg"),
+              boxShadow: `0 18px 0 ${withAlpha(theme.primary, 0.08)}, 0 28px 45px ${withAlpha(theme.textStrong, 0.12)}`,
+            }}
+          >
+            <PaperHeader theme={theme} category="手账封面" pageIndex={props.pageIndex} pageTotal={props.pageTotal} />
+            <div className="flex flex-1 flex-col justify-center gap-9">
+              <div className="flex items-start justify-between gap-6">
+              <div className="w-fit rotate-[-2deg]">
+                <PaperNote theme={theme}>
+                  <span className="font-wenkai font-bold tracking-[0.12em]" style={{ color: theme.primary, fontSize: scaledPx(26) }}>
+                    NOTEBOOK
+                  </span>
+                </PaperNote>
+              </div>
+                <div
+                  className="rotate-[4deg] px-5 py-4 text-center font-wenkai font-black"
+                  style={{
+                    color: theme.primary,
+                    border: `3px double ${theme.primary}`,
+                    borderRadius: radius(theme, "md"),
+                    fontSize: scaledPx(28),
+                  }}
+                >
+                  DAILY
+                  <br />
+                  MEMO
+                </div>
+              </div>
+              <PaperTitle theme={theme} size="xl">{slide.title}</PaperTitle>
+              <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
+              {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
+            </div>
+          </div>
+        </div>
+      </CardContainer>
+    );
+  }
+
   return (
     <PaperShell {...props} category="手账封面">
       <div className="flex flex-1 flex-col justify-center gap-9">
@@ -387,15 +445,59 @@ export function TextCard(props: CardProps) {
 
 export function TextImageCard(props: CardProps) {
   const { slide, theme } = props;
+  const imgSrc = proxyImageUrl(slide.image?.localPath || slide.image?.previewUrl);
+  const hasImage = !!imgSrc;
+  const pos = slide.imagePosition || "top";
+
+  const content = (
+    <div className="flex flex-1 flex-col gap-5">
+      {hasImage && pos === "top" && <ImagePanel slide={slide} theme={theme} />}
+      <PaperTitle theme={theme} size="md">{slide.title}</PaperTitle>
+      <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
+      <PaperBulletGrid theme={theme} bullets={slide.bullets} />
+      {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
+      {hasImage && pos === "bottom" && <ImagePanel slide={slide} theme={theme} />}
+    </div>
+  );
+
+  if (hasImage && pos === "background") {
+    return (
+      <CardContainer theme={theme} backgroundType={props.backgroundType} fontScale={props.fontScale}>
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url("${imgSrc}")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.07,
+          }}
+        />
+        <div className="relative z-10 flex h-full flex-col p-14">
+          <div
+            className="relative flex h-full flex-col overflow-hidden px-12 py-10"
+            style={{
+              backgroundColor: paperColor(theme),
+              border: `2px dashed ${withAlpha(theme.primary, 0.45)}`,
+              borderRadius: radius(theme, "lg"),
+              boxShadow: `0 18px 0 ${withAlpha(theme.primary, 0.08)}, 0 28px 45px ${withAlpha(theme.textStrong, 0.12)}`,
+            }}
+          >
+            <PaperHeader theme={theme} category="图文剪贴" pageIndex={props.pageIndex} pageTotal={props.pageTotal} />
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+              <PaperTitle theme={theme} size="md">{slide.title}</PaperTitle>
+              <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
+              <PaperBulletGrid theme={theme} bullets={slide.bullets} />
+              {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
+            </div>
+          </div>
+        </div>
+      </CardContainer>
+    );
+  }
+
   return (
     <PaperShell {...props} category="图文剪贴">
-      <div className="flex flex-1 flex-col gap-5">
-        <ImagePanel slide={slide} theme={theme} />
-        <PaperTitle theme={theme} size="md">{slide.title}</PaperTitle>
-        <PaperSubtitle theme={theme}>{slide.subtitle}</PaperSubtitle>
-        <PaperBulletGrid theme={theme} bullets={slide.bullets} />
-        {slide.highlight && <PaperHighlight theme={theme}>{slide.highlight}</PaperHighlight>}
-      </div>
+      {content}
     </PaperShell>
   );
 }
